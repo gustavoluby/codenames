@@ -15,4 +15,5 @@ export const HOST_TIMEOUT_MS = 45_000; // depois disso, qualquer um pode assumir
 
 // Subcaminho onde o jogo está publicado ("" na raiz do domínio, "/codenames" num subcaminho).
 // Link e router do Next já aplicam sozinhos; fetch e window.location precisam deste prefixo.
-export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "";
+const rawBasePath = (process.env.NEXT_PUBLIC_BASE_PATH || "").trim().replace(/^\/+|\/+$/g, "");
+export const BASE_PATH = rawBasePath ? `/${rawBasePath}` : "";
