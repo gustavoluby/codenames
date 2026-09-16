@@ -11,7 +11,7 @@ export interface WordPack {
 
 export const WORD_PACKS: WordPack[] = [
   { id: "leadster", name: "Leadster", description: "Marketing, vendas, produto e rotina", words: leadster },
-  { id: "time", name: "Time Leadster", description: "Pessoas e piadas internas", words: time },
+  { id: "time", name: "Time Leadster", description: "Pessoas e piadas das reuniões do time", words: time },
   { id: "geral", name: "Geral", description: "Palavras comuns do português", words: geral },
 ];
 

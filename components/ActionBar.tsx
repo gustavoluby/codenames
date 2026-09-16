@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Eye, Hand, Send } from "lucide-react";
 import type { Action, RoomView } from "@/lib/types";
 
 const COUNTS: (number | null)[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, null];
@@ -23,7 +24,7 @@ export default function ActionBar({ room, act }: { room: RoomView; act: (a: Acti
       if (ok) setWord("");
     };
     return (
-      <div className="actionbar">
+      <div className={`actionbar team-${game.turn}`}>
         <input
           className="input"
           value={word}
@@ -40,8 +41,8 @@ export default function ActionBar({ room, act }: { room: RoomView; act: (a: Acti
             </button>
           ))}
         </div>
-        <button className={`btn btn-${game.turn}`} onClick={send} disabled={!word || sending}>
-          {sending ? "Enviando…" : "Enviar dica"}
+        <button className="btn btn-gold" onClick={send} disabled={!word || sending}>
+          <Send aria-hidden /> {sending ? "Enviando…" : "Enviar dica"}
         </button>
       </div>
     );
@@ -51,6 +52,7 @@ export default function ActionBar({ room, act }: { room: RoomView; act: (a: Acti
     return (
       <div className="actionbar">
         <p className="actionbar-note">
+          <Hand aria-hidden />
           {game.guessesMade === 0 ? "Revele pelo menos uma carta antes de passar a vez." : "Acertou! Pode continuar ou passar a vez."}
         </p>
         <button className="btn btn-ghost" onClick={() => act({ type: "endTurn" })} disabled={game.guessesMade === 0}>
@@ -63,7 +65,7 @@ export default function ActionBar({ room, act }: { room: RoomView; act: (a: Acti
   if (!you.team) {
     return (
       <div className="actionbar">
-        <p className="actionbar-note">Você está assistindo. Entre num time pelos painéis laterais.</p>
+        <p className="actionbar-note"><Eye aria-hidden /> Você está assistindo. Entre num time pelos painéis laterais.</p>
       </div>
     );
   }

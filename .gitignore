@@ -9,3 +9,7 @@ next-env.d.ts
 
 # transcrições das reuniões (material de entrada para palavras)
 transcricoes/
+
+# referências de design (prints)
+temp/
+.DS_Store

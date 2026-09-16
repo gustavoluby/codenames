@@ -1,8 +1,7 @@
+import { Check } from "lucide-react";
 import { ASSASSIN_LABEL, NEUTRAL_LABEL } from "@/lib/config";
 import type { Action, CardView, RoomView } from "@/lib/types";
-import type { CSSProperties } from "react";
-
-const longest = (s: string) => Math.max(6, ...s.split(/\s+/).map((w) => w.length));
+import CardFace, { cardClasses, cardStyle } from "./CardFace";
 
 export default function Board({ room, act }: { room: RoomView; act: (a: Action) => Promise<boolean> }) {
   const game = room.game!;
@@ -18,35 +17,31 @@ export default function Board({ room, act }: { room: RoomView; act: (a: Action) 
     <div className="board" role="grid" aria-label="Tabuleiro">
       {game.cards.map((card, i) => {
         const mine = you ? card.marks.includes(you.id) : false;
-        const classes = ["card"];
-        if (card.revealed) {
-          classes.push("revealed", `rev-${card.color}`);
-        } else if (card.color) {
-          classes.push(`key-${card.color}`); // espião-mestre ou fim de jogo
-        }
+        const classes = cardClasses(card.color, card.revealed); // cor sem revelar = espião-mestre ou fim de jogo
         if (canGuess && !card.revealed) classes.push("clickable");
         if (mine) classes.push("marked-by-me");
         if (over && card.revealed) classes.push("faded");
 
-        const style = { "--len": longest(card.word), "--slen": longest(stampFor(card)) } as CSSProperties;
-        const content = (
-          <>
-            <span className="card-word">{card.word}</span>
-            {card.revealed && <span className="stamp">{stampFor(card)}</span>}
-            {!card.revealed && card.marks.length > 0 && (
-              <span className="marks">
-                {card.marks.map((id) => (
-                  <span key={id} className="mark">{nameOf(id)}</span>
-                ))}
-              </span>
-            )}
-          </>
+        const stamp = card.revealed ? stampFor(card) : "";
+        const marks = !card.revealed && card.marks.length > 0 && (
+          <span className="marks">
+            {card.marks.map((id) => (
+              <span key={id} className="mark">{nameOf(id)}</span>
+            ))}
+          </span>
         );
 
         if (!canGuess || card.revealed) {
           return (
-            <div key={i} className={classes.join(" ")} style={style} role="gridcell" title={card.revealedBy ? `Revelada por ${card.revealedBy}` : undefined}>
-              {content}
+            <div
+              key={i}
+              className={classes.join(" ")}
+              style={cardStyle(card.word, stamp)}
+              role="gridcell"
+              aria-label={card.revealed ? `${card.word}, ${stamp}` : card.word}
+              title={card.revealedBy ? `Revelada por ${card.revealedBy}` : undefined}
+            >
+              <CardFace word={card.word} color={card.color} revealed={card.revealed} stamp={stamp}>{marks}</CardFace>
             </div>
           );
         }
@@ -55,7 +50,7 @@ export default function Board({ room, act }: { room: RoomView; act: (a: Action) 
           <div
             key={i}
             className={classes.join(" ")}
-            style={style}
+            style={cardStyle(card.word)}
             role="gridcell"
             tabIndex={0}
             aria-label={`${card.word}${mine ? ", marcada por você" : ""}`}
@@ -67,16 +62,18 @@ export default function Board({ room, act }: { room: RoomView; act: (a: Action) 
               }
             }}
           >
-            {content}
-            <button
-              className="reveal-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                act({ type: "reveal", index: i });
-              }}
-            >
-              Revelar
-            </button>
+            <CardFace word={card.word} color={card.color} revealed={false}>
+              {marks}
+              <button
+                className="reveal-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  act({ type: "reveal", index: i });
+                }}
+              >
+                <Check strokeWidth={3} aria-hidden /> Revelar
+              </button>
+            </CardFace>
           </div>
         );
       })}

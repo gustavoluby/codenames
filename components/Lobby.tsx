@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Check, Hourglass, Play, RotateCcw, Shuffle, TriangleAlert } from "lucide-react";
 import { WORD_PACKS, buildWordPool } from "@/lib/words";
 import type { Action, RoomView, Team } from "@/lib/types";
 
@@ -39,8 +40,8 @@ export default function Lobby({ room, act, isHost }: { room: RoomView; act: (a: 
 
   return (
     <section className="lobby" aria-label="Preparar partida">
-      <div className="stack">
-        <h2>Preparar partida</h2>
+      <div className="lobby-head">
+        <h2>Sala de operações</h2>
         <p>
           {isHost
             ? "Mande o link da sala para o time. Cada pessoa escolhe um lado nos painéis e você começa quando todos estiverem posicionados."
@@ -48,54 +49,71 @@ export default function Lobby({ room, act, isHost }: { room: RoomView; act: (a: 
         </p>
       </div>
 
-      <div className="stack">
-        <span className="field-label">Pacotes de palavras ({poolSize} palavras)</span>
+      <div>
+        <h3 className="group-title">
+          Pacotes de palavras <small>{poolSize} palavras no sorteio</small>
+        </h3>
         <div className="packs">
           {WORD_PACKS.map((pack) => {
             const on = s.packs.includes(pack.id);
             return (
               <button key={pack.id} className={`pack ${on ? "on" : ""}`} onClick={() => togglePack(pack.id)} disabled={!isHost} aria-pressed={on}>
-                <strong>{pack.name}</strong>
-                <span>{pack.description} · {pack.words.length}</span>
+                <span className="pack-box" aria-hidden><span>{pack.name.charAt(0)}</span></span>
+                <span className="pack-text">
+                  <strong>{pack.name}</strong>
+                  <span>{pack.description} · {pack.words.length}</span>
+                </span>
+                <span className="pack-check" aria-hidden><Check strokeWidth={3} /></span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="two">
-        {(["blue", "red"] as Team[]).map((t) => (
-          <div key={t}>
-            <label className="field-label" htmlFor={`name-${t}`}>Nome do time {t === "blue" ? "azul" : "verde"}</label>
-            <input
-              id={`name-${t}`}
-              className="input"
-              value={names[t]}
-              maxLength={18}
-              disabled={!isHost}
-              onChange={(e) => setNames({ ...names, [t]: e.target.value })}
-              onBlur={() => act({ type: "updateSettings", settings: { teamNames: names } })}
-            />
-          </div>
-        ))}
+      <div>
+        <h3 className="group-title">Times</h3>
+        <div className="two">
+          {(["blue", "red"] as Team[]).map((t) => (
+            <div key={t} className={`team-${t}`}>
+              <label className="field-label" htmlFor={`name-${t}`}>
+                <span className="swatch" aria-hidden />Nome do time {t === "blue" ? "azul" : "verde"}
+              </label>
+              <input
+                id={`name-${t}`}
+                className="input"
+                value={names[t]}
+                maxLength={18}
+                disabled={!isHost}
+                onChange={(e) => setNames({ ...names, [t]: e.target.value })}
+                onBlur={() => act({ type: "updateSettings", settings: { teamNames: names } })}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       <div>
-        <label className="field-label" htmlFor="custom">Palavras extras (uma por linha)</label>
+        <label className="group-title" htmlFor="custom">
+          Palavras extras <small>uma por linha</small>
+        </label>
         <textarea id="custom" className="input" value={custom} disabled={!isHost} onChange={(e) => setCustom(e.target.value)} onBlur={saveCustom} placeholder="Ex.: piada interna da última reunião" />
       </div>
 
-      {isHost && (
-        <>
-          {missing.length > 0 && <div className="warn">{missing.join(". ")}.</div>}
-          <div className="row" style={{ flexWrap: "wrap", justifyContent: "space-between" }}>
-            <div className="row">
-              <button className="btn btn-ghost btn-sm" onClick={() => act({ type: "randomizeTeams" })}>Sortear times</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => act({ type: "resetTeams" })}>Limpar times</button>
-            </div>
-            <button className="btn" onClick={start} disabled={poolSize < 25}>Começar partida</button>
+      {isHost ? (
+        <div className="lobby-actions">
+          {missing.length > 0 && (
+            <div className="warn"><TriangleAlert aria-hidden /> <span>{missing.join(". ")}.</span></div>
+          )}
+          <div className="row">
+            <button className="btn btn-ghost" onClick={() => act({ type: "randomizeTeams" })}><Shuffle aria-hidden /> Sortear times</button>
+            <button className="btn btn-ghost" onClick={() => act({ type: "resetTeams" })}><RotateCcw aria-hidden /> Limpar times</button>
           </div>
-        </>
+          <button className="btn btn-gold btn-lg btn-block" onClick={start} disabled={poolSize < 25}>
+            <Play aria-hidden fill="currentColor" /> Começar partida
+          </button>
+        </div>
+      ) : (
+        <p className="waiting"><Hourglass aria-hidden /> Esperando o admin começar a partida.</p>
       )}
     </section>
   );

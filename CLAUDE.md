@@ -3,7 +3,7 @@
 Jogo interno da Leadster: dois times, espião-mestre dá dica de uma palavra + número, agentes adivinham num tabuleiro 5×5. Mecânica clássica de jogo de dicas e palavras. **Não usar o nome, a arte ou os personagens de jogos comerciais do gênero** (ex.: Codenames é marca registrada da CGE) — o jogo tem nome e visual próprios.
 
 ## Stack
-- Next.js (App Router) + React + TypeScript, CSS puro (`app/globals.css`, sem Tailwind)
+- Next.js (App Router) + React + TypeScript, CSS puro (`app/globals.css`, sem Tailwind), ícones `lucide-react`
 - Upstash Redis via `@upstash/redis` em produção; fallback em memória quando não há env vars (só dev)
 - Vitest para as regras
 - Deploy: Vercel
@@ -30,8 +30,15 @@ components/                       RoomScreen, Board, TeamPanel, ActionBar, Lobby
 - **Gabarito protegido.** `viewFor` zera `color` das cartas não reveladas para quem não é espião-mestre. Nunca mande o `Room` cru para o cliente.
 - **Polling com versão.** Cada ação incrementa `room.version` e grava a versão numa chave separada. O GET compara com `since` e só devolve a sala se mudou. Presença é gravada a cada ~10s num hash separado (não altera a versão).
 - **Concorrência.** `withRoomLock` usa `SET NX PX` por sala; ler → aplicar → salvar acontece dentro da trava.
-- **IDs de time internos são `blue` e `red`.** Os nomes exibidos vêm de `room.settings.teamNames` (padrão Marketing/Vendas) e as cores de `--team-blue` (azul) e `--team-red` (verde WhatsApp). Não renomeie os IDs; mude só nome/cor.
+- **IDs de time internos são `blue` e `red`.** Os nomes exibidos vêm de `room.settings.teamNames` (padrão Pagode/Sertanejo, rivalidade que saiu dos happy hours; o time não quer Marketing × Vendas) e as cores de `--blue` (azul) e `--green` (verde). Não renomeie os IDs; mude só nome/cor.
 - Identidade do jogador: UUID no localStorage (`lead-secreto:identity`). Sem login.
+
+## Design ("dossiê noturno")
+- Tema escuro fixo: mesa azul-carvão com luz de luminária e grão, cartas de papel marfim com faixa marrom e a palavra de ponta-cabeça no topo (como a carta física). Referências dos prints ficam em `temp/` (não versionado).
+- Tokens em OKLCH no topo de `app/globals.css`. Dourado (`--gold`) é só para ação principal; azul = time `blue`, verde WhatsApp = time `red`.
+- Fontes: Barlow Condensed (títulos, cartas, botões principais), Figtree (texto e UI), Special Elite (carimbos, código da sala).
+- Ilustrações são silhuetas SVG originais em `components/Figure.tsx` (agente de chapéu, espiã de chanel, civil, Churn encapuzado). Pintam com `currentColor` + `--fig-face`/`--fig-detail`.
+- `components/CardFace.tsx` é o miolo da carta, usado no tabuleiro e na cena da home. Ícones: `lucide-react`.
 
 ## Regras implementadas
 - 25 cartas: 9 do time que começa (sorteado), 8 do outro, 7 neutras ("Lead frio"), 1 assassina ("Churn").
@@ -46,7 +53,7 @@ components/                       RoomScreen, Board, TeamPanel, ActionBar, Lobby
 - Mantenha `lib/game.ts` sem dependência de Next/Redis para continuar testável.
 - Antes de commitar: `npm test && npm run typecheck && npm run build`.
 
-## Tarefa pendente: palavras das reuniões do time
+## Palavras das reuniões do time (feito em 16/09/2026; repetir o processo quando vierem novas transcrições)
 O usuário vai colocar transcrições de reuniões de descontração (brindes, happy hours, momentos do time) numa pasta, por exemplo `transcricoes/` (não versionar — adicione ao `.gitignore`). Ao receber:
 1. Leia as transcrições e extraia **piadas internas, apelidos, bordões, lugares, comidas, eventos e objetos** que o time todo reconheceria.
 2. Critérios: substantivos ou expressões de até 2–3 palavras, máx. 24 caracteres; nada ofensivo, constrangedor ou que exponha algo pessoal/sensível de alguém (saúde, relacionamento, dinheiro, demissões, conflitos); evite termos que só 1–2 pessoas entenderiam.
@@ -59,3 +66,13 @@ O usuário vai colocar transcrições de reuniões de descontração (brindes, h
 - Sons de revelar/vitória
 - Modo com 3+ times ou modo cooperativo de 2 jogadores
 - Placar acumulado da sala entre partidas
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

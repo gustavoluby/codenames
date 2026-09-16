@@ -2,7 +2,7 @@
 export const GAME_NAME = "Lead Secreto";
 export const GAME_TAGLINE = "O jogo de dicas e palavras do time Leadster";
 
-export const DEFAULT_TEAM_NAMES = { blue: "Marketing", red: "Vendas" } as const;
+export const DEFAULT_TEAM_NAMES = { blue: "Pagode", red: "Sertanejo" } as const;
 
 // Nome que aparece no carimbo das cartas reveladas que não são de time.
 export const NEUTRAL_LABEL = "Lead frio";

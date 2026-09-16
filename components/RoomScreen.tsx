@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BASE_PATH, GAME_NAME, HOST_TIMEOUT_MS } from "@/lib/config";
+import { ArrowRight, BookOpen, Copy, Eye, Flag, LogOut, RotateCcw } from "lucide-react";
+import { ASSASSIN_LABEL, BASE_PATH, HOST_TIMEOUT_MS } from "@/lib/config";
 import { loadIdentity, saveIdentity, useRoom, type Identity } from "@/lib/client";
 import type { Team } from "@/lib/types";
 import ActionBar from "./ActionBar";
 import Board from "./Board";
+import Brand from "./Brand";
 import GameLog from "./GameLog";
 import Lobby from "./Lobby";
 import RulesDialog from "./RulesDialog";
@@ -28,17 +30,21 @@ export default function RoomScreen({ code }: { code: string }) {
   if (notFound) {
     return (
       <main className="centered">
-        <div className="join-box">
-          <h1>Sala não encontrada</h1>
-          <p>O código {code} não existe ou a sala expirou (elas somem 24h depois da última jogada).</p>
-          <Link className="btn" href="/">Criar uma sala nova</Link>
+        <div className="dossier join-box">
+          <span className="stamp-type dossier-tab">Arquivo morto</span>
+          <Brand />
+          <div className="stack">
+            <h2>Sala não encontrada</h2>
+            <p>O código {code} não existe ou a sala expirou (elas somem 24h depois da última jogada).</p>
+          </div>
+          <Link className="btn btn-gold btn-block" href="/">Criar uma sala nova <ArrowRight aria-hidden /></Link>
         </div>
       </main>
     );
   }
 
   if (!room || !identity) {
-    return <main className="centered"><p>Abrindo a sala {code}…</p></main>;
+    return <main className="centered"><p className="loading-line">Abrindo a sala {code}…</p></main>;
   }
 
   if (!room.you) {
@@ -52,12 +58,18 @@ export default function RoomScreen({ code }: { code: string }) {
     };
     return (
       <main className="centered">
-        <div className="join-box">
-          <h1>{GAME_NAME}</h1>
-          <p>Você foi chamado para a sala {code}. Como o time vai te chamar?</p>
+        <div className="dossier join-box">
+          <span className="stamp-type dossier-tab">Convocação · {code}</span>
+          <Brand />
+          <div className="stack">
+            <h2>Você foi convocado</h2>
+            <p>Uma missão começou na sala {code}. Como o time vai te chamar?</p>
+          </div>
           <div className="stack">
             <input className="input" autoFocus value={joinName} maxLength={24} placeholder="Seu apelido" aria-label="Seu apelido" onChange={(e) => setJoinName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} />
-            <button className="btn" onClick={submit} disabled={joining}>{joining ? "Entrando…" : "Entrar na sala"}</button>
+            <button className="btn btn-gold btn-lg btn-block" onClick={submit} disabled={joining}>
+              {joining ? "Entrando…" : <>Entrar na sala <ArrowRight aria-hidden /></>}
+            </button>
           </div>
         </div>
         {toast && <div className="toast" role="status">{toast}</div>}
@@ -73,7 +85,7 @@ export default function RoomScreen({ code }: { code: string }) {
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(`${window.location.origin}${BASE_PATH}/sala/${room.code}`);
-      setToast("Link da sala copiado.");
+      setToast("Link da sala copiado. Cole no chat da call.");
     } catch {
       setToast(`Código da sala: ${room.code}`);
     }
@@ -83,40 +95,50 @@ export default function RoomScreen({ code }: { code: string }) {
     <TeamPanel team={team} room={room} presence={presence} onJoin={(role) => act({ type: "setRole", team, role })} />
   );
 
+  const leave = () => confirm("Sair da sala?") && act({ type: "leave" }).then(() => (window.location.href = `${BASE_PATH}/`));
+
   return (
     <main className="room">
       <header className="topbar">
-        <div className="row" style={{ gap: "1rem", flexWrap: "wrap" }}>
-          <Link href="/" className="brand" style={{ color: "inherit", textDecoration: "none" }}>{GAME_NAME}</Link>
+        <div className="topbar-left">
+          <Brand />
           <span className="room-code">
             Sala <strong>{room.code}</strong>
-            <button className="btn btn-sm" onClick={copyLink}>Copiar link</button>
+            <button className="btn btn-ghost" onClick={copyLink}><Copy aria-hidden /> Copiar link</button>
           </span>
         </div>
-        <div className="row" style={{ flexWrap: "wrap" }}>
+        <div className="topbar-right">
           {you.team && (
-            <button className="btn btn-ghost btn-sm" onClick={() => act({ type: "setRole", team: null, role: null })}>Virar espectador</button>
+            <button className="btn btn-ghost" onClick={() => act({ type: "setRole", team: null, role: null })}><Eye aria-hidden /> Virar espectador</button>
           )}
           {isHost && game && game.phase !== "over" && (
-            <button className="btn btn-ghost btn-sm" onClick={() => confirm("Encerrar a partida e voltar ao lobby?") && act({ type: "backToLobby" })}>Encerrar partida</button>
+            <button className="btn btn-ghost" onClick={() => confirm("Encerrar a partida e voltar ao lobby?") && act({ type: "backToLobby" })}><Flag aria-hidden /> Encerrar partida</button>
           )}
-          <button className="btn btn-ghost btn-sm" onClick={() => setShowRules(true)}>Regras</button>
+          <button className="btn btn-ghost" onClick={() => setShowRules(true)}><BookOpen aria-hidden /> Regras</button>
+          <button className="btn btn-ghost" onClick={leave}><LogOut aria-hidden /> Sair</button>
         </div>
       </header>
 
       {game ? <StatusLine room={room} /> : <div style={{ height: "1.25rem" }} />}
 
       <div className="layout">
-        {panel("blue")}
+        <div className="side">{panel("blue")}</div>
         <div className="center">
           {game ? (
             <>
               {game.phase === "over" && game.winner && (
-                <div className={`gameover team-${game.winner}`}>
-                  <h2>{room.settings.teamNames[game.winner]} venceu{game.winReason === "assassin" ? " — o outro time achou o Churn" : ""}!</h2>
+                <div className={`gameover team-${game.winner} ${game.winReason === "assassin" ? "lost-assassin" : ""}`}>
+                  <div>
+                    <h2>{room.settings.teamNames[game.winner]} venceu!</h2>
+                    <p>
+                      {game.winReason === "assassin"
+                        ? `${room.settings.teamNames[game.winner === "blue" ? "red" : "blue"]} revelou o ${ASSASSIN_LABEL}.`
+                        : "Todos os agentes foram encontrados."}
+                    </p>
+                  </div>
                   {isHost ? (
                     <div className="row">
-                      <button className="btn" onClick={() => act({ type: "startGame" })}>Nova partida</button>
+                      <button className="btn btn-gold" onClick={() => act({ type: "startGame" })}><RotateCcw aria-hidden /> Nova partida</button>
                       <button className="btn btn-ghost" onClick={() => act({ type: "backToLobby" })}>Voltar ao lobby</button>
                     </div>
                   ) : (
@@ -130,15 +152,16 @@ export default function RoomScreen({ code }: { code: string }) {
           ) : (
             <Lobby room={room} act={act} isHost={isHost} />
           )}
-          <GameLog room={room} />
-          <div className="footer-links">
-            {!isHost && !hostOnline && (
+          {!isHost && !hostOnline && (
+            <div className="footer-links">
               <button className="linklike" onClick={() => act({ type: "claimHost" })}>O admin saiu? Assumir o admin</button>
-            )}
-            <button className="linklike" onClick={() => confirm("Sair da sala?") && act({ type: "leave" }).then(() => (window.location.href = `${BASE_PATH}/`))}>Sair da sala</button>
-          </div>
+            </div>
+          )}
         </div>
-        {panel("red")}
+        <div className="side">
+          {panel("red")}
+          <GameLog room={room} />
+        </div>
       </div>
 
       {showRules && <RulesDialog onClose={() => setShowRules(false)} />}

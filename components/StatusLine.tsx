@@ -10,11 +10,18 @@ export default function StatusLine({ room }: { room: RoomView }) {
   if (game.phase === "over") return <div className="status" />;
 
   if (game.phase === "clue") {
-    const hint = yourTurn && you?.role === "spymaster" ? "Sua vez de dar a dica." : yourTurn ? "Espere a dica do seu espião-mestre." : "O outro time está pensando na dica.";
+    const hint =
+      yourTurn && you?.role === "spymaster"
+        ? "Sua vez: dê uma dica de uma palavra e diga quantas cartas ela conecta."
+        : yourTurn
+          ? "Espere a dica do seu espião-mestre."
+          : you?.team
+            ? "O espião-mestre deles está pensando na dica."
+            : "O espião-mestre está pensando na dica.";
     return (
       <div className="status" aria-live="polite">
         <p className="status-main">
-          <span className={`t-${game.turn}`}>{turnName}</span> está pensando na dica
+          Vez de <span className={`t-${game.turn}`}>{turnName}</span>
         </p>
         <p className="status-hint">{hint}</p>
       </div>
@@ -33,9 +40,13 @@ export default function StatusLine({ room }: { room: RoomView }) {
 
   return (
     <div className="status" aria-live="polite">
-      <p className="status-main"><span className={`t-${game.turn}`}>{turnName}</span> recebeu a dica</p>
-      <span className="status-clue">
-        {clue.word} <span className="n">{clue.count === null ? "∞" : clue.count}</span>
+      <p className="status-main">
+        Vez de <span className={`t-${game.turn}`}>{turnName}</span>
+      </p>
+      <span className="status-clue" key={`${clue.word}-${clue.count}`}>
+        <span className="status-clue-label">Dica</span>
+        {clue.word}
+        <span className="n" aria-label={clue.count === null ? "ilimitado" : `${clue.count} cartas`}>{clue.count === null ? "∞" : clue.count}</span>
       </span>
       <p className="status-hint">
         {left !== null ? `${left} ${left === 1 ? "palpite restante" : "palpites restantes"}. ` : "Palpites ilimitados. "}

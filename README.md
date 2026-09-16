@@ -1,6 +1,6 @@
 # Lead Secreto
 
-Jogo de dicas e palavras para o time da Leadster jogar junto numa call. Dois times (Marketing × Vendas), um espião-mestre por time dá a dica, os agentes marcam palpites e revelam as cartas. Uso interno, feito para ~20 pessoas por sala.
+Jogo de dicas e palavras para o time da Leadster jogar junto numa call. Dois times (Pagode × Sertanejo, nomes editáveis no lobby), um espião-mestre por time dá a dica, os agentes marcam palpites e revelam as cartas. Uso interno, feito para ~20 pessoas por sala.
 
 ## Rodar local
 
