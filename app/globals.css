@@ -698,6 +698,8 @@ textarea.input { min-height: 96px; resize: vertical; line-height: 1.5; }
 .lobby-head { text-align: center; display: flex; flex-direction: column; gap: 0.4rem; align-items: center; }
 .lobby h2 { margin: 0; font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 2.1rem; letter-spacing: 0.03em; line-height: 1; }
 .lobby-head p { margin: 0; color: var(--ivory-dim); line-height: 1.5; max-width: 60ch; }
+.lobby-head .lock-note { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--gold-hi); font-size: 0.9rem; }
+.lock-note svg { width: 0.95rem; height: 0.95rem; }
 .group-title {
   margin: 0 0 0.6rem;
   display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem;

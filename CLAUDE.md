@@ -46,7 +46,8 @@ components/                       RoomScreen, Board, TeamPanel, ActionBar, Lobby
 - Palpites: até número+1; 0 ou ∞ = ilimitado. Mínimo de 1 palpite antes de encerrar a vez.
 - Marcar carta (toggle, mostra nomes) ≠ revelar. Marcações são limpas a cada troca de vez.
 - Própria cor: continua. Neutra/adversária: passa a vez. Assassina: perde na hora. Revelar a última carta de qualquer time dá vitória a esse time.
-- Admin: cria a sala, configura pacotes/nomes/palavras extras, sorteia times, começa/encerra. Se ficar offline >45s, outro jogador pode assumir.
+- **Time e função travados:** depois de escolher, o jogador não troca de time, de função nem vira espectador. A escolha fica em `room.assignments` (não vai para o navegador) e volta se a pessoa sair e entrar de novo. Não existe "Limpar times"; o sorteio só distribui quem está sem time.
+- Admin: cria a sala, configura pacotes/nomes/palavras extras, sorteia quem está sem time, começa/encerra. Se ficar offline >45s, outro jogador pode assumir.
 
 ## Convenções
 - Todo texto de interface em português do Brasil, sentence case, verbos diretos ("Revelar", "Enviar dica", "Encerrar a vez").

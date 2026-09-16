@@ -118,3 +118,43 @@ describe("regras", () => {
     expect(() => applyAction(room, sm(t), { type: "reveal", index: 0 }, ctx())).toThrow();
   });
 });
+
+describe("times travados", () => {
+  it("quem entrou num time não troca de time, de função nem vira espectador", () => {
+    const room = setup();
+    expect(() => applyAction(room, "bluesm-01", { type: "setRole", team: "blue", role: "agent" }, ctx())).toThrow(/não dá para trocar/);
+    expect(() => applyAction(room, "bluesm-01", { type: "setRole", team: "red", role: "spymaster" }, ctx())).toThrow(/não dá para trocar/);
+    expect(() =>
+      applyAction(room, "bluesm-01", { type: "setRole", team: null, role: null } as never, ctx()),
+    ).toThrow(/não dá para trocar/);
+    expect(room.players.find((p) => p.id === "bluesm-01")).toMatchObject({ team: "blue", role: "spymaster" });
+  });
+
+  it("sair e voltar para a sala mantém o time e a função", () => {
+    const room = setup();
+    applyAction(room, "bluesm-01", { type: "leave" }, ctx());
+    applyAction(room, "bluesm-01", { type: "join", name: "Fê" }, ctx());
+    expect(room.players.find((p) => p.id === "bluesm-01")).toMatchObject({ team: "blue", role: "spymaster" });
+    expect(() => applyAction(room, "bluesm-01", { type: "setRole", team: "red", role: "agent" }, ctx())).toThrow();
+  });
+
+  it("sortear só distribui quem está sem time", () => {
+    const room = setup();
+    applyAction(room, "livre-001", { type: "join", name: "Davi" }, ctx());
+    applyAction(room, "livre-002", { type: "join", name: "Let" }, ctx());
+    const before = room.players.filter((p) => p.team).map((p) => ({ ...p }));
+    applyAction(room, "host-0001", { type: "randomizeTeams" }, ctx());
+    for (const p of before) expect(room.players.find((x) => x.id === p.id)).toMatchObject({ team: p.team, role: p.role });
+    const blue = room.players.filter((p) => p.team === "blue");
+    const red = room.players.filter((p) => p.team === "red");
+    expect(room.players.every((p) => p.team)).toBe(true);
+    expect(Math.abs(blue.length - red.length)).toBeLessThanOrEqual(1);
+    expect(() => applyAction(room, "host-0001", { type: "randomizeTeams" }, ctx())).toThrow(/Todo mundo/);
+  });
+
+  it("não manda a lista de travas para o navegador", () => {
+    const room = setup();
+    expect(room.assignments).toBeDefined();
+    expect("assignments" in viewFor(room, "blueag-01")).toBe(false);
+  });
+});

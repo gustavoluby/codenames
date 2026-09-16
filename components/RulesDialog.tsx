@@ -19,6 +19,7 @@ export default function RulesDialog({ onClose }: { onClose: () => void }) {
         <p>Dois times disputam quem encontra primeiro todos os seus agentes escondidos entre as 25 palavras do tabuleiro.</p>
         <ul>
           <li>Cada time tem um <strong>espião-mestre</strong>, que vê a cor de todas as cartas, e <strong>agentes</strong>, que não veem nada.</li>
+          <li><strong>Escolheu time e função, não troca mais</strong> nesta sala, nem saindo e voltando. Assim ninguém espia o gabarito e muda de lado.</li>
           <li>O time que começa tem 9 cartas; o outro, 8. Há 7 cartas de {NEUTRAL_LABEL} e 1 carta de {ASSASSIN_LABEL}.</li>
           <li>Na sua vez, o espião-mestre dá uma dica de uma palavra só e um número: quantas cartas ela conecta. A dica não pode ser uma palavra que ainda está no tabuleiro.</li>
           <li>Os agentes conversam, marcam palpites clicando nas cartas e usam Revelar quando decidirem. Podem fazer até número + 1 palpites (0 ou ∞ liberam palpites ilimitados), sempre pelo menos um.</li>

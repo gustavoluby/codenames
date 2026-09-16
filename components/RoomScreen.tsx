@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, BookOpen, Copy, Eye, Flag, LogOut, RotateCcw } from "lucide-react";
+import { ArrowRight, BookOpen, Copy, Flag, LogOut, RotateCcw } from "lucide-react";
 import { ASSASSIN_LABEL, BASE_PATH, HOST_TIMEOUT_MS } from "@/lib/config";
 import { loadIdentity, saveIdentity, useRoom, type Identity } from "@/lib/client";
 import type { Team } from "@/lib/types";
@@ -92,7 +92,15 @@ export default function RoomScreen({ code }: { code: string }) {
   };
 
   const panel = (team: Team) => (
-    <TeamPanel team={team} room={room} presence={presence} onJoin={(role) => act({ type: "setRole", team, role })} />
+    <TeamPanel
+      team={team}
+      room={room}
+      presence={presence}
+      onJoin={(role) =>
+        confirm(`Entrar em ${room.settings.teamNames[team]} como ${role === "spymaster" ? "espião-mestre" : "agente"}? Depois não dá para trocar.`) &&
+        act({ type: "setRole", team, role })
+      }
+    />
   );
 
   const leave = () => confirm("Sair da sala?") && act({ type: "leave" }).then(() => (window.location.href = `${BASE_PATH}/`));
@@ -108,9 +116,6 @@ export default function RoomScreen({ code }: { code: string }) {
           </span>
         </div>
         <div className="topbar-right">
-          {you.team && (
-            <button className="btn btn-ghost" onClick={() => act({ type: "setRole", team: null, role: null })}><Eye aria-hidden /> Virar espectador</button>
-          )}
           {isHost && game && game.phase !== "over" && (
             <button className="btn btn-ghost" onClick={() => confirm("Encerrar a partida e voltar ao lobby?") && act({ type: "backToLobby" })}><Flag aria-hidden /> Encerrar partida</button>
           )}

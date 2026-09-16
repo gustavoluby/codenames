@@ -18,7 +18,6 @@ export default function TeamPanel({
 
   const roleBlock = (role: Role, label: string) => {
     const people = members.filter((p) => p.role === role);
-    const isYou = room.you?.team === team && room.you?.role === role;
     const Icon = role === "spymaster" ? KeyRound : Users;
     return (
       <div className={`role-box ${activeRole === role ? "is-active" : ""}`}>
@@ -46,7 +45,7 @@ export default function TeamPanel({
             ))}
           </ul>
         )}
-        {!isYou && (
+        {room.you && !room.you.team && (
           <button className="btn-join" onClick={() => onJoin(role)}>
             <Plus aria-hidden strokeWidth={2.5} /> Entrar como {role === "spymaster" ? "espião-mestre" : "agente"}
           </button>

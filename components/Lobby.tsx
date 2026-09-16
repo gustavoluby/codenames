@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Hourglass, Play, RotateCcw, Shuffle, TriangleAlert } from "lucide-react";
+import { Check, Hourglass, Lock, Play, Shuffle, TriangleAlert } from "lucide-react";
 import { WORD_PACKS, buildWordPool } from "@/lib/words";
 import type { Action, RoomView, Team } from "@/lib/types";
 
@@ -47,6 +47,7 @@ export default function Lobby({ room, act, isHost }: { room: RoomView; act: (a: 
             ? "Mande o link da sala para o time. Cada pessoa escolhe um lado nos painéis e você começa quando todos estiverem posicionados."
             : "Escolha seu time e função nos painéis laterais. O admin da sala começa a partida."}
         </p>
+        <p className="lock-note"><Lock aria-hidden /> Depois de entrar num time, não dá para trocar.</p>
       </div>
 
       <div>
@@ -104,10 +105,11 @@ export default function Lobby({ room, act, isHost }: { room: RoomView; act: (a: 
           {missing.length > 0 && (
             <div className="warn"><TriangleAlert aria-hidden /> <span>{missing.join(". ")}.</span></div>
           )}
-          <div className="row">
-            <button className="btn btn-ghost" onClick={() => act({ type: "randomizeTeams" })}><Shuffle aria-hidden /> Sortear times</button>
-            <button className="btn btn-ghost" onClick={() => act({ type: "resetTeams" })}><RotateCcw aria-hidden /> Limpar times</button>
-          </div>
+          {room.players.some((p) => !p.team) && (
+            <div className="row">
+              <button className="btn btn-ghost" onClick={() => act({ type: "randomizeTeams" })}><Shuffle aria-hidden /> Sortear quem está sem time</button>
+            </div>
+          )}
           <button className="btn btn-gold btn-lg btn-block" onClick={start} disabled={poolSize < 25}>
             <Play aria-hidden fill="currentColor" /> Começar partida
           </button>

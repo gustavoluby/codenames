@@ -64,6 +64,8 @@ export interface Room {
   settings: Settings;
   game: Game | null;
   log: LogEntry[];
+  /** Time e função travados de cada jogador que já escolheu. Sobrevive a sair e voltar para a sala. */
+  assignments?: Record<string, { team: Team; role: Role }>;
 }
 
 /** Carta como o cliente enxerga: sem cor se o jogador não pode ver o gabarito. */
@@ -71,7 +73,7 @@ export interface CardView extends Omit<Card, "color"> {
   color: CardColor | null;
 }
 
-export interface RoomView extends Omit<Room, "game"> {
+export interface RoomView extends Omit<Room, "game" | "assignments"> {
   game: (Omit<Game, "cards"> & { cards: CardView[] }) | null;
   you: Player | null;
 }
@@ -79,9 +81,8 @@ export interface RoomView extends Omit<Room, "game"> {
 export type Action =
   | { type: "join"; name: string }
   | { type: "leave" }
-  | { type: "setRole"; team: Team | null; role: Role | null }
+  | { type: "setRole"; team: Team; role: Role }
   | { type: "randomizeTeams" }
-  | { type: "resetTeams" }
   | { type: "updateSettings"; settings: Partial<Settings> }
   | { type: "startGame" }
   | { type: "backToLobby" }

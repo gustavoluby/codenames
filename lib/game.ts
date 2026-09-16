@@ -1,5 +1,5 @@
 import { DEFAULT_TEAM_NAMES, ASSASSIN_LABEL, NEUTRAL_LABEL } from "./config";
-import type { Action, Card, CardColor, Game, Player, Room, RoomView, Team } from "./types";
+import type { Action, Card, CardColor, Game, Player, Role, Room, RoomView, Team } from "./types";
 import { buildWordPool, DEFAULT_PACKS, WORD_PACKS } from "./words";
 
 export class GameError extends Error {}
@@ -123,6 +123,13 @@ function requirePlayer(room: Room, playerId: string): Player {
   return p;
 }
 
+/** Coloca o jogador no time e trava a escolha para sempre nesta sala. */
+function assign(room: Room, p: Player, team: Team, role: Role) {
+  p.team = team;
+  p.role = role;
+  room.assignments = { ...room.assignments, [p.id]: { team, role } };
+}
+
 function requireHost(room: Room, playerId: string) {
   if (room.hostId !== playerId) throw new GameError("Só o admin da sala pode fazer isso.");
 }
@@ -148,7 +155,8 @@ export function applyAction(room: Room, playerId: string, action: Action, ctx: A
           throw new GameError(`Já tem alguém chamado ${name} na sala. Escolha outro apelido.`);
         }
         if (room.players.length >= 40) throw new GameError("A sala está cheia.");
-        room.players.push({ id: playerId, name, team: null, role: null, joinedAt: now });
+        const locked = room.assignments?.[playerId]; // quem saiu e voltou continua no mesmo time
+        room.players.push({ id: playerId, name, team: locked?.team ?? null, role: locked?.role ?? null, joinedAt: now });
         log(room, now, { kind: "system", text: `${name} entrou na sala.` });
       }
       break;
@@ -165,34 +173,29 @@ export function applyAction(room: Room, playerId: string, action: Action, ctx: A
 
     case "setRole": {
       const p = requirePlayer(room, playerId);
-      if ((action.team === null) !== (action.role === null)) throw new GameError("Escolha time e função juntos.");
-      p.team = action.team;
-      p.role = action.role;
-      if (room.game) for (const c of room.game.cards) c.marks = c.marks.filter((id) => id !== playerId);
+      if (p.team) {
+        const role = p.role === "spymaster" ? "espião-mestre" : "agente";
+        throw new GameError(`Você já está em ${names[p.team]} como ${role}. Depois de escolher, não dá para trocar.`);
+      }
+      if ((action.team !== "blue" && action.team !== "red") || (action.role !== "spymaster" && action.role !== "agent")) {
+        throw new GameError("Escolha time e função.");
+      }
+      assign(room, p, action.team, action.role);
       break;
     }
 
     case "randomizeTeams": {
+      // Só distribui quem ainda está sem time: quem já escolheu fica travado.
       requireHost(room, playerId);
-      const shuffled = shuffle(room.players, rng);
-      shuffled.forEach((p, i) => {
-        p.team = i % 2 === 0 ? "blue" : "red";
-        p.role = "agent";
-      });
-      for (const team of ["blue", "red"] as Team[]) {
-        const first = shuffled.find((p) => p.team === team);
-        if (first) first.role = "spymaster";
+      const free = shuffle(room.players.filter((p) => !p.team), rng);
+      if (free.length === 0) throw new GameError("Todo mundo já está num time.");
+      for (const p of free) {
+        const size = (t: Team) => room.players.filter((x) => x.team === t).length;
+        const team: Team = size("blue") === size("red") ? (rng() < 0.5 ? "blue" : "red") : size("blue") < size("red") ? "blue" : "red";
+        const hasSpymaster = room.players.some((x) => x.team === team && x.role === "spymaster");
+        assign(room, p, team, hasSpymaster ? "agent" : "spymaster");
       }
-      log(room, now, { kind: "system", text: "Os times foram sorteados." });
-      break;
-    }
-
-    case "resetTeams": {
-      requireHost(room, playerId);
-      for (const p of room.players) {
-        p.team = null;
-        p.role = null;
-      }
+      log(room, now, { kind: "system", text: `${free.length === 1 ? "Uma pessoa sem time foi sorteada" : `${free.length} pessoas sem time foram sorteadas`}.` });
       break;
     }
 
@@ -339,8 +342,9 @@ export function applyAction(room: Room, playerId: string, action: Action, ctx: A
 export function viewFor(room: Room, playerId: string | null): RoomView {
   const you = room.players.find((p) => p.id === playerId) ?? null;
   const seesKey = you?.role === "spymaster" || room.game?.phase === "over";
+  const { assignments: _assignments, ...visible } = room;
   return {
-    ...room,
+    ...visible,
     you,
     game: room.game
       ? {
