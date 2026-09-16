@@ -814,6 +814,15 @@ textarea.input { min-height: 96px; resize: vertical; line-height: 1.5; }
   padding: 0.75rem 1.1rem; border-radius: 12px;
   animation: toast-in 240ms var(--ease) both;
 }
+.reconnecting {
+  position: fixed; top: 0.75rem; left: 50%; z-index: var(--z-toast);
+  transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 0.55rem;
+  padding: 0.5rem 0.95rem; border-radius: 999px;
+  background: var(--desk-3); color: var(--gold-hi); font-size: 0.875rem; font-weight: 600;
+  box-shadow: inset 0 0 0 1px oklch(0.81 0.12 80 / 0.45), 0 12px 30px -12px oklch(0 0 0 / 0.9);
+}
+.reconnecting::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--gold); animation: blink 1s steps(2, jump-none) infinite; }
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 

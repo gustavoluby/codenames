@@ -37,6 +37,18 @@ const presenceKey = (code: string) => `ls:room:${code}:presence`;
 
 export const usingRedis = Boolean(redis);
 
+/** Diagnóstico para /api/health: qual armazenamento está ativo e se o Redis responde. */
+export async function storeHealth(): Promise<{ storage: "redis" | "memory"; ok: boolean; ms: number; error?: string }> {
+  const started = Date.now();
+  if (!redis) return { storage: "memory", ok: !process.env.VERCEL, ms: 0, error: process.env.VERCEL ? "Sem Upstash Redis: na Vercel as salas somem entre servidores." : undefined };
+  try {
+    await redis.ping();
+    return { storage: "redis", ok: true, ms: Date.now() - started };
+  } catch (err) {
+    return { storage: "redis", ok: false, ms: Date.now() - started, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 export async function getRoom(code: string): Promise<Room | null> {
   if (redis) return (await redis.get<Room>(roomKey(code))) ?? null;
   const r = memGet<Room>(roomKey(code));

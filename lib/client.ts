@@ -5,6 +5,8 @@ import { BASE_PATH, POLL_INTERVAL_MS, PRESENCE_EVERY_MS } from "./config";
 import type { Action, RoomView } from "./types";
 
 const IDENTITY_KEY = "lead-secreto:identity";
+const NOT_FOUND_STRIKES = 4;
+const RECONNECT_AFTER = 3;
 
 export interface Identity { id: string; name: string }
 
@@ -42,9 +44,13 @@ export function useRoom(code: string, playerId: string | null) {
   const [room, setRoom] = useState<RoomView | null>(null);
   const [presence, setPresence] = useState<Record<string, number>>({});
   const [notFound, setNotFound] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const version = useRef(-1);
   const lastTouch = useRef(0);
+  // Só desiste da sala depois de vários 404 seguidos: um servidor lento ou uma réplica atrasada não pode derrubar a partida.
+  const misses = useRef(0);
+  const failures = useRef(0);
 
   const applyRoom = useCallback((r: RoomView) => {
     if (r.version >= version.current) {
@@ -66,15 +72,25 @@ export function useRoom(code: string, playerId: string | null) {
           { cache: "no-store" },
         );
         if (res.status === 404) {
-          setNotFound(true);
-          return;
+          misses.current += 1;
+          if (misses.current >= NOT_FOUND_STRIKES) {
+            setNotFound(true);
+            return;
+          }
+          throw new Error("404");
         }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+        misses.current = 0;
+        failures.current = 0;
+        setReconnecting(false);
         if (touch) lastTouch.current = Date.now();
         if (data.presence) setPresence(data.presence);
         if (data.changed && data.room) applyRoom(data.room);
       } catch {
-        // rede instável: tenta de novo no próximo ciclo
+        // rede ou servidor instável: tenta de novo no próximo ciclo e avisa se continuar falhando
+        failures.current += 1;
+        if (failures.current >= RECONNECT_AFTER) setReconnecting(true);
       }
       if (!stopped) {
         const hidden = typeof document !== "undefined" && document.hidden;
@@ -115,5 +131,5 @@ export function useRoom(code: string, playerId: string | null) {
     [code, playerId, applyRoom],
   );
 
-  return { room, presence, notFound, toast, setToast, act };
+  return { room, presence, notFound, reconnecting, toast, setToast, act };
 }

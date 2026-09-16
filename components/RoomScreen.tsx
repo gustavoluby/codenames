@@ -18,7 +18,7 @@ import TeamPanel from "./TeamPanel";
 export default function RoomScreen({ code }: { code: string }) {
   const [identity, setIdentity] = useState<Identity | null>(null);
   useEffect(() => setIdentity(loadIdentity()), []);
-  const { room, presence, notFound, toast, setToast, act } = useRoom(code, identity?.id ?? null);
+  const { room, presence, notFound, reconnecting, toast, setToast, act } = useRoom(code, identity?.id ?? null);
   const [showRules, setShowRules] = useState(false);
   const [joinName, setJoinName] = useState("");
   const [joining, setJoining] = useState(false);
@@ -169,6 +169,7 @@ export default function RoomScreen({ code }: { code: string }) {
         </div>
       </div>
 
+      {reconnecting && <div className="reconnecting" role="status">Conexão instável. Tentando reconectar…</div>}
       {showRules && <RulesDialog onClose={() => setShowRules(false)} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </main>
