@@ -1,0 +1,23 @@
+// Palavras comuns em português para misturar com os pacotes da Leadster e deixar o jogo mais aberto.
+export const geral: string[] = [
+  "Ponte", "Estrela", "Banco", "Carta", "Chave", "Coroa", "Dragão", "Escola", "Fogo", "Gelo",
+  "Hotel", "Ilha", "Jardim", "Lua", "Mesa", "Neve", "Onda", "Pirata", "Rainha", "Sol",
+  "Tigre", "Vela", "Vulcão", "Zebra", "Âncora", "Balão", "Castelo", "Diamante", "Espelho", "Farol",
+  "Guitarra", "Helicóptero", "Igreja", "Janela", "Laser", "Máscara", "Ninja", "Óculos", "Pena", "Queijo",
+  "Robô", "Sereia", "Tesoura", "Unicórnio", "Vampiro", "Xadrez", "Abelha", "Bateria", "Cometa", "Dente",
+  "Elefante", "Foguete", "Garfo", "Horóscopo", "Ímã", "Jacaré", "Lâmpada", "Mapa", "Nuvem", "Ovo",
+  "Pirâmide", "Relógio", "Sapato", "Tambor", "Urso", "Violão", "Anel", "Bola", "Cobra", "Dinossauro",
+  "Esqui", "Fantasma", "Gato", "Hospital", "Iogurte", "Jogo", "Leão", "Mola", "Nota", "Olho",
+  "Pão", "Rato", "Satélite", "Teatro", "Uva", "Vento", "Asa", "Bruxa", "Circo", "Deserto",
+  "Espada", "Floresta", "Gorila", "Hambúrguer", "Iate", "Jaula", "Limão", "Martelo", "Navio", "Ouro",
+  "Palhaço", "Radar", "Selva", "Torre", "Túnel", "Vidro", "Agulha", "Baleia", "Canguru", "Detetive",
+  "Escada", "Feijão", "Girafa", "Hino", "Inverno", "Joia", "Lixo", "Microscópio", "Nave", "Orelha",
+  "Parafuso", "Raio", "Sino", "Tapete", "Trem", "Vaca", "Algodão", "Bota", "Cachorro", "Doutor",
+  "Esgoto", "Fada", "Gancho", "Hélice", "Iglu", "Jornal", "Lagosta", "Mel", "Nariz", "Orquestra",
+  "Pinguim", "Rede", "Semente", "Tomate", "Trator", "Veneno", "Alho", "Barco", "Cinema", "Dado",
+  "Escorpião", "Flauta", "Granada", "Herói", "Isqueiro", "Judô", "Lupa", "Moeda", "Ninho", "Oásis",
+  "Pólvora", "Rodeio", "Samba", "Tatu", "Tubarão", "Vassoura", "Abacaxi", "Bússola", "Chocolate", "Dominó",
+  "Estátua", "Futebol", "Grama", "Harpa", "Império", "Jangada", "Lençol", "Múmia", "Nevasca", "Oficina",
+  "Papagaio", "Receita", "Sofá", "Telhado", "Trufa", "Viking", "Aranha", "Bigode", "Cápsula", "Duende",
+  "Eclipse", "Fita", "Gaveta", "Hamster", "Ioiô", "Jipe", "Labirinto", "Mochila", "Nó", "Ópera",
+];

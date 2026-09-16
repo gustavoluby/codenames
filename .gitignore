@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+.env
+.env.local
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# transcrições das reuniões (material de entrada para palavras)
+transcricoes/
