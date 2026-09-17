@@ -9,9 +9,14 @@ import type { Room } from "./types";
  *   porque na Vercel cada função serverless tem sua própria memória).
  */
 
-const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
-const token = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
-const redis = url && token ? new Redis({ url, token }) : null;
+// A integração da Vercel pode criar as variáveis com prefixo (ex.: MEUBANCO_KV_REST_API_URL),
+// então procuramos pelo final do nome. Token somente leitura não serve.
+const envKeys = Object.keys(process.env);
+const findEnv = (suffixes: string[]) =>
+  envKeys.find((k) => suffixes.some((s) => k === s || k.endsWith(`_${s}`)) && !k.includes("READ_ONLY") && process.env[k]);
+const urlKey = findEnv(["UPSTASH_REDIS_REST_URL", "KV_REST_API_URL"]);
+const tokenKey = findEnv(["UPSTASH_REDIS_REST_TOKEN", "KV_REST_API_TOKEN"]);
+const redis = urlKey && tokenKey ? new Redis({ url: process.env[urlKey]!, token: process.env[tokenKey]! }) : null;
 
 type MemEntry = { value: unknown; expiresAt: number };
 const g = globalThis as unknown as { __leadSecretoMem?: Map<string, MemEntry> };
@@ -38,14 +43,24 @@ const presenceKey = (code: string) => `ls:room:${code}:presence`;
 export const usingRedis = Boolean(redis);
 
 /** Diagnóstico para /api/health: qual armazenamento está ativo e se o Redis responde. */
-export async function storeHealth(): Promise<{ storage: "redis" | "memory"; ok: boolean; ms: number; error?: string }> {
+export async function storeHealth() {
   const started = Date.now();
-  if (!redis) return { storage: "memory", ok: !process.env.VERCEL, ms: 0, error: process.env.VERCEL ? "Sem Upstash Redis: na Vercel as salas somem entre servidores." : undefined };
+  // Só nomes de variáveis, nunca valores.
+  const redisEnvNames = envKeys.filter((k) => /KV_|REDIS|UPSTASH/.test(k)).sort();
+  if (!redis) {
+    return {
+      storage: "memory" as const,
+      ok: !process.env.VERCEL,
+      ms: 0,
+      redisEnvNames,
+      error: process.env.VERCEL ? "Sem Upstash Redis: na Vercel as salas somem entre servidores." : undefined,
+    };
+  }
   try {
     await redis.ping();
-    return { storage: "redis", ok: true, ms: Date.now() - started };
+    return { storage: "redis" as const, ok: true, ms: Date.now() - started, using: [urlKey, tokenKey] };
   } catch (err) {
-    return { storage: "redis", ok: false, ms: Date.now() - started, error: err instanceof Error ? err.message : String(err) };
+    return { storage: "redis" as const, ok: false, ms: Date.now() - started, using: [urlKey, tokenKey], error: err instanceof Error ? err.message : String(err) };
   }
 }
 
