@@ -4,7 +4,7 @@
 // por isso não entram aqui: o carimbo da carta revelada não pode ser igual a uma palavra do tabuleiro.
 export const time: string[] = [
   // Pessoas
-  "Fabrício", "Luby", "Fê", "Caio", "André", "Davi", "Juliana", "Let", "Lucas", "Matheus", "Scharon",
+  "Fabrício", "Luby", "Fé", "Caio", "André", "Davi", "Juliana", "Let", "Lucas", "Matheus", "Scharon",
 
   // Save the Sexta: Stop online (jul/2026)
   "Stop", "Gartic", "Robôs", "Pódio", "Humilhação", "Pizza", "Marte", "Praia", "Justo", "Ovo",
