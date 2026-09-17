@@ -17,7 +17,7 @@ export function cardStyle(word: string, stamp = "") {
   return { "--len": longest(word), "--slen": longest(stamp) } as CSSProperties;
 }
 
-/** Miolo da carta: palavra de ponta-cabeça, faixa com a palavra e, se revelada, a silhueta + carimbo. */
+/** Miolo da carta: faixa com a palavra e, se revelada, a silhueta + carimbo. */
 export default function CardFace({ word, color, revealed, stamp, children }: {
   word: string;
   color: CardColor | null;
@@ -27,13 +27,11 @@ export default function CardFace({ word, color, revealed, stamp, children }: {
 }) {
   return (
     <>
-      {revealed && color ? (
+      {revealed && color && (
         <>
           <Figure kind={FIGURE[color]} className="card-figure" />
           {stamp && <span className="stamp-type card-stamp">{stamp}</span>}
         </>
-      ) : (
-        <span className="card-flip" aria-hidden>{word}</span>
       )}
       <span className="card-band">
         <span className="card-word">{word}</span>

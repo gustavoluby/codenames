@@ -33,7 +33,7 @@ export default function StatusLine({ room }: { room: RoomView }) {
   const left = limited ? clue.count! + 1 - game.guessesMade : null;
   const hint =
     yourTurn && you?.role === "agent"
-      ? "Clique numa carta para marcar o palpite. Quando o time concordar, use Revelar."
+      ? "Clique numa carta para votar. Quando o time concordar, passe o mouse e clique no ✓ do canto."
       : yourTurn
         ? "Seu time está adivinhando. Nada de dar pistas com a cara!"
         : `${turnName} está adivinhando.`;

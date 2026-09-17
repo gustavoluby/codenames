@@ -34,7 +34,7 @@ components/                       RoomScreen, Board, TeamPanel, ActionBar, Lobby
 - Identidade do jogador: UUID no localStorage (`lead-secreto:identity`). Sem login.
 
 ## Design ("dossiê noturno")
-- Tema escuro fixo: mesa azul-carvão com luz de luminária e grão, cartas de papel marfim com faixa marrom e a palavra de ponta-cabeça no topo (como a carta física). Referências dos prints ficam em `temp/` (não versionado).
+- Tema escuro fixo: mesa azul-carvão com luz de luminária e grão, cartas de papel marfim com faixa marrom (sem a palavra de ponta-cabeça: o usuário achou poluído). Referências dos prints ficam em `temp/` (não versionado).
 - Tokens em OKLCH no topo de `app/globals.css`. Dourado (`--gold`) é só para ação principal; azul = time `blue`, verde WhatsApp = time `red`.
 - Fontes: Barlow Condensed (títulos, cartas, botões principais), Figtree (texto e UI), Special Elite (carimbos, código da sala).
 - Ilustrações são silhuetas SVG originais em `components/Figure.tsx` (agente de chapéu, espiã de chanel, civil, Churn encapuzado). Pintam com `currentColor` + `--fig-face`/`--fig-detail`.
@@ -44,7 +44,7 @@ components/                       RoomScreen, Board, TeamPanel, ActionBar, Lobby
 - 25 cartas: 9 do time que começa (sorteado), 8 do outro, 7 neutras ("Lead frio"), 1 assassina ("Churn").
 - Dica: uma palavra (hífen permitido), não pode ser igual (sem acento/caixa) a carta não revelada. Número 0–9 ou ∞.
 - Palpites: até número+1; 0 ou ∞ = ilimitado. Mínimo de 1 palpite antes de encerrar a vez.
-- Marcar carta (toggle, mostra nomes) ≠ revelar. Marcações são limpas a cada troca de vez.
+- Marcar carta = votar (toggle, mostra os nomes de quem votou) ≠ revelar. Revelar é o ✓ pequeno no canto superior direito, que só aparece no hover (no celular, só nas cartas que você votou), para ninguém revelar sem querer. Marcações são limpas a cada troca de vez.
 - Própria cor: continua. Neutra/adversária: passa a vez. Assassina: perde na hora. Revelar a última carta de qualquer time dá vitória a esse time.
 - **Time e função travados:** depois de escolher, o jogador não troca de time, de função nem vira espectador. A escolha fica em `room.assignments` (não vai para o navegador) e volta se a pessoa sair e entrar de novo. Não existe "Limpar times"; o sorteio só distribui quem está sem time.
 - Admin: cria a sala, configura pacotes/nomes/palavras extras, sorteia quem está sem time, começa/encerra. Se ficar offline >45s, outro jogador pode assumir.

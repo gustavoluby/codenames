@@ -233,22 +233,6 @@ textarea.input { min-height: 96px; resize: vertical; line-height: 1.5; }
   border-radius: 6px;
   pointer-events: none;
 }
-/* palavra de ponta-cabeça, como na carta física, para quem senta do outro lado */
-.card-flip {
-  position: absolute;
-  top: 14%; left: 8%; right: 8%;
-  text-align: center;
-  transform: rotate(180deg);
-  font-family: var(--display);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: min(0.95rem, calc(100cqi / var(--len, 8) * 0.9));
-  line-height: 1;
-  color: oklch(0.45 0.04 60 / 0.42);
-  white-space: nowrap;
-  overflow: hidden;
-}
 .card-band {
   position: absolute;
   left: 8%; right: 8%; bottom: 11%;
@@ -293,35 +277,44 @@ textarea.input { min-height: 96px; resize: vertical; line-height: 1.5; }
 }
 .marks {
   position: absolute; z-index: var(--z-card-ui);
-  top: 5%; left: 5%; right: 5%;
-  display: flex; flex-wrap: wrap; gap: 0.2rem; justify-content: center;
+  top: 7%; left: 6%; right: 6%;
+  display: flex; flex-wrap: wrap; gap: 0.2rem; justify-content: flex-start;
 }
+/* nos cards clicáveis, os votos não passam por baixo do ✓ do canto */
+.card.clickable .marks { right: calc(6% + var(--check-size) + 0.2rem); }
 .mark {
+  display: inline-flex; align-items: center; gap: 0.2rem;
   background: oklch(0.2 0.02 250 / 0.92); color: var(--gold-hi);
-  border-radius: 999px; padding: 0.12rem 0.45rem;
-  font-size: clamp(0.55rem, 0.8vw, 0.72rem); font-weight: 700;
+  border-radius: 999px; padding: 0.12rem 0.45rem 0.12rem 0.35rem;
+  font-size: clamp(0.55rem, 0.8vw, 0.72rem); font-weight: 700; line-height: 1.2;
   box-shadow: 0 2px 6px oklch(0 0 0 / 0.3);
 }
-.card:has(.marks) .card-flip { opacity: 0; }
+.mark svg { width: 1.05em; height: 1.05em; flex: none; }
+
+/* ✓ Revelar: pequeno, no canto, só com o mouse em cima (fora disso nem recebe clique) */
+.card { --check-size: clamp(1.55rem, 2.3vw, 2.1rem); }
 .reveal-btn {
   position: absolute; z-index: var(--z-card-ui);
-  top: 50%; left: 50%;
-  translate: -50% -85%;
-  display: inline-flex; align-items: center; gap: 0.25rem;
-  border: 0; border-radius: 999px;
-  padding: 0.3rem 0.7rem;
-  font-family: var(--display); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
-  font-size: clamp(0.65rem, 0.95vw, 0.9rem);
+  top: 6%; right: 5%;
+  width: var(--check-size); height: var(--check-size);
+  display: grid; place-items: center;
+  padding: 0; border: 0; border-radius: 50%;
   color: var(--gold-ink);
   background: linear-gradient(180deg, var(--gold-hi), var(--gold-lo));
-  box-shadow: 0 6px 16px -4px oklch(0 0 0 / 0.6);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.5), 0 6px 14px -4px oklch(0 0 0 / 0.65);
   opacity: 0;
+  pointer-events: none;
+  transform: scale(0.7);
   transition: opacity 160ms var(--ease), transform 160ms var(--ease);
 }
-.reveal-btn svg { width: 1em; height: 1em; }
-.reveal-btn:hover { transform: scale(1.05); }
-.card:hover .reveal-btn, .card:focus-within .reveal-btn, .card.marked-by-me .reveal-btn { opacity: 1; }
-@media (hover: none) { .card.marked-by-me .reveal-btn { opacity: 1; } }
+.reveal-btn svg { width: 58%; height: 58%; }
+.card.clickable:hover .reveal-btn,
+.card.clickable:focus-within .reveal-btn { opacity: 1; pointer-events: auto; transform: scale(1); }
+.card.clickable .reveal-btn:hover { transform: scale(1.12); filter: brightness(1.06); }
+/* no celular não existe hover: o ✓ aparece só nas cartas que você votou */
+@media (hover: none) {
+  .card.clickable.marked-by-me .reveal-btn { opacity: 1; pointer-events: auto; transform: scale(1); }
+}
 
 /* visão do espião-mestre: faixa pintada com a cor da carta */
 .card.key-blue .card-band { background: linear-gradient(180deg, var(--blue), var(--blue-deep)); }
@@ -335,12 +328,10 @@ textarea.input { min-height: 96px; resize: vertical; line-height: 1.5; }
   box-shadow: inset 0 0 0 1px oklch(0.63 0.21 27 / 0.6), 0 12px 22px -12px oklch(0 0 0 / 0.8);
 }
 .card.key-assassin .card-band { background: linear-gradient(180deg, oklch(0.5 0.19 27), oklch(0.36 0.15 25)); }
-.card.key-assassin .card-flip { color: oklch(1 0 0 / 0.25); }
 
 /* carta revelada: vira a identidade do agente */
 .card.revealed { animation: reveal 520ms var(--ease) both; }
 .card.revealed::before { border-color: oklch(1 0 0 / 0.16); }
-.card.revealed .card-flip { display: none; }
 .card.revealed .card-band {
   left: 0; right: 0; bottom: 0;
   min-height: 30%;
@@ -856,12 +847,10 @@ textarea.input { min-height: 96px; resize: vertical; line-height: 1.5; }
   .board { gap: 0.3rem; }
   .board .card { aspect-ratio: 1.12; border-radius: 6px; }
   .board .card::before { display: none; }
-  .board .card-flip { display: none; }
   .board .card-band { left: 4%; right: 4%; bottom: 5%; min-height: 52%; border-radius: 3px; padding: 0.1rem; }
   .board .card-word { font-size: min(1rem, calc(100cqi / var(--len, 8) * 1.25)); }
   .board .card-stamp { display: none; }
   .board .card.revealed .card-band { min-height: 36%; }
-  .reveal-btn { translate: -50% -110%; }
   .actionbar .input { max-width: none; }
   .two { grid-template-columns: 1fr; }
   .brand-word { font-size: 1.3rem; }

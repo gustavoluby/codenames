@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, Vote } from "lucide-react";
 import { ASSASSIN_LABEL, NEUTRAL_LABEL } from "@/lib/config";
 import type { Action, CardView, RoomView } from "@/lib/types";
 import CardFace, { cardClasses, cardStyle } from "./CardFace";
@@ -23,11 +23,15 @@ export default function Board({ room, act }: { room: RoomView; act: (a: Action) 
         if (over && card.revealed) classes.push("faded");
 
         const stamp = card.revealed ? stampFor(card) : "";
+        // Até 3 nomes; com mais votos mostra 2 + "+N" para não cobrir a palavra
+        const shown = card.marks.length > 3 ? card.marks.slice(0, 2) : card.marks;
+        const hiddenVotes = card.marks.length - shown.length;
         const marks = !card.revealed && card.marks.length > 0 && (
-          <span className="marks">
-            {card.marks.map((id) => (
-              <span key={id} className="mark">{nameOf(id)}</span>
+          <span className="marks" title={card.marks.map(nameOf).join(", ")}>
+            {shown.map((id) => (
+              <span key={id} className="mark"><Vote aria-hidden /> {nameOf(id)}</span>
             ))}
+            {hiddenVotes > 0 && <span className="mark">+{hiddenVotes}</span>}
           </span>
         );
 
@@ -53,7 +57,7 @@ export default function Board({ room, act }: { room: RoomView; act: (a: Action) 
             style={cardStyle(card.word)}
             role="gridcell"
             tabIndex={0}
-            aria-label={`${card.word}${mine ? ", marcada por você" : ""}`}
+            aria-label={`${card.word}${card.marks.length ? `, votos: ${card.marks.map(nameOf).join(", ")}` : ""}. Enter para votar.`}
             onClick={() => act({ type: "toggleMark", index: i })}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -66,12 +70,15 @@ export default function Board({ room, act }: { room: RoomView; act: (a: Action) 
               {marks}
               <button
                 className="reveal-btn"
+                title="Revelar carta"
+                aria-label={`Revelar ${card.word}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   act({ type: "reveal", index: i });
                 }}
+                onKeyDown={(e) => e.stopPropagation()}
               >
-                <Check strokeWidth={3} aria-hidden /> Revelar
+                <Check strokeWidth={3.5} aria-hidden />
               </button>
             </CardFace>
           </div>
