@@ -96,10 +96,7 @@ export default function RoomScreen({ code }: { code: string }) {
       team={team}
       room={room}
       presence={presence}
-      onJoin={(role) =>
-        confirm(`Entrar em ${room.settings.teamNames[team]} como ${role === "spymaster" ? "espião-mestre" : "agente"}? Depois não dá para trocar.`) &&
-        act({ type: "setRole", team, role })
-      }
+      onJoin={(role) => act({ type: "setRole", team, role })}
     />
   );
 
