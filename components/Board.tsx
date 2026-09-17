@@ -70,8 +70,7 @@ export default function Board({ room, act }: { room: RoomView; act: (a: Action) 
               {marks}
               <button
                 className="reveal-btn"
-                title="Revelar carta"
-                aria-label={`Revelar ${card.word}`}
+                aria-label={`Votar pelo seu time: revelar ${card.word}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   act({ type: "reveal", index: i });
@@ -79,6 +78,7 @@ export default function Board({ room, act }: { room: RoomView; act: (a: Action) 
                 onKeyDown={(e) => e.stopPropagation()}
               >
                 <Check strokeWidth={3.5} aria-hidden />
+                <span className="reveal-tip" aria-hidden>Votar pelo seu time</span>
               </button>
             </CardFace>
           </div>
