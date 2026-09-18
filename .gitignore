@@ -13,3 +13,6 @@ transcricoes/
 # referências de design (prints)
 temp/
 .DS_Store
+
+# config local do preview do Claude Code
+.claude/launch.json

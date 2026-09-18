@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, BookOpen, Copy, Flag, LogOut, RotateCcw } from "lucide-react";
+import { ArrowRight, BookOpen, Copy, Flag, LogOut, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { ASSASSIN_LABEL, BASE_PATH, HOST_TIMEOUT_MS } from "@/lib/config";
 import { loadIdentity, saveIdentity, useRoom, type Identity } from "@/lib/client";
+import { useRoomEvents } from "@/lib/events";
+import { loadMuted, setMuted, unlockAudio } from "@/lib/sound";
 import type { Team } from "@/lib/types";
 import ActionBar from "./ActionBar";
+import Announcer from "./Announcer";
 import Board from "./Board";
 import Brand from "./Brand";
 import GameLog from "./GameLog";
@@ -19,9 +22,30 @@ export default function RoomScreen({ code }: { code: string }) {
   const [identity, setIdentity] = useState<Identity | null>(null);
   useEffect(() => setIdentity(loadIdentity()), []);
   const { room, presence, notFound, reconnecting, toast, setToast, act } = useRoom(code, identity?.id ?? null);
+  const { banner, flash } = useRoomEvents(room);
   const [showRules, setShowRules] = useState(false);
   const [joinName, setJoinName] = useState("");
   const [joining, setJoining] = useState(false);
+  const [mute, setMute] = useState(false);
+
+  // O navegador só libera áudio depois de um gesto: destrava no primeiro clique ou tecla.
+  useEffect(() => {
+    setMute(loadMuted());
+    const unlock = () => unlockAudio();
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, []);
+
+  const toggleMute = () => {
+    const next = !mute;
+    setMute(next);
+    setMuted(next);
+    if (!next) unlockAudio();
+  };
 
   useEffect(() => {
     if (identity?.name) setJoinName(identity.name);
@@ -102,8 +126,10 @@ export default function RoomScreen({ code }: { code: string }) {
 
   const leave = () => confirm("Sair da sala?") && act({ type: "leave" }).then(() => (window.location.href = `${BASE_PATH}/`));
 
+  const shake = flash?.color === "assassin";
+
   return (
-    <main className="room">
+    <main className={`room ${game ? `turn-${game.turn}` : ""} ${shake ? "shake" : ""}`}>
       <header className="topbar">
         <div className="topbar-left">
           <Brand />
@@ -116,6 +142,9 @@ export default function RoomScreen({ code }: { code: string }) {
           {isHost && game && game.phase !== "over" && (
             <button className="btn btn-ghost" onClick={() => confirm("Encerrar a partida e voltar ao lobby?") && act({ type: "backToLobby" })}><Flag aria-hidden /> Encerrar partida</button>
           )}
+          <button className="btn btn-ghost" onClick={toggleMute} aria-pressed={mute} title={mute ? "Ligar os sons" : "Desligar os sons"}>
+            {mute ? <VolumeX aria-hidden /> : <Volume2 aria-hidden />} {mute ? "Som off" : "Som on"}
+          </button>
           <button className="btn btn-ghost" onClick={() => setShowRules(true)}><BookOpen aria-hidden /> Regras</button>
           <button className="btn btn-ghost" onClick={leave}><LogOut aria-hidden /> Sair</button>
         </div>
@@ -166,6 +195,7 @@ export default function RoomScreen({ code }: { code: string }) {
         </div>
       </div>
 
+      <Announcer banner={banner} flash={flash} />
       {reconnecting && <div className="reconnecting" role="status">Conexão instável. Tentando reconectar…</div>}
       {showRules && <RulesDialog onClose={() => setShowRules(false)} />}
       {toast && <div className="toast" role="status">{toast}</div>}

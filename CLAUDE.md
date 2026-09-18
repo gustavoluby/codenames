@@ -40,6 +40,14 @@ components/                       RoomScreen, Board, TeamPanel, ActionBar, Lobby
 - Ilustrações são silhuetas SVG originais em `components/Figure.tsx` (agente de chapéu, espiã de chanel, civil, Churn encapuzado). Pintam com `currentColor` + `--fig-face`/`--fig-detail`.
 - `components/CardFace.tsx` é o miolo da carta, usado no tabuleiro e na cena da home. Ícones: `lucide-react`.
 
+## Efeitos e som
+- Nada muda na tela em silêncio: `lib/events.ts` (`useRoomEvents`) compara a sala nova com a anterior e transforma a diferença em anúncio, clarão e som. Quem abre a sala no meio da partida só "fotografa" o estado, não leva enxurrada de efeito.
+- `components/Announcer.tsx` desenha a faixa central (vez, dica, partida nova, vitória) e o clarão colorido da carta revelada. É `pointer-events: none`: nunca rouba clique.
+- `components/Board.tsx` marca por ~1s as cartas que acabaram de ser reveladas (estouro de luz) ou votadas (anel dourado), e distribui as 25 cartas com atraso escalonado (`--i`) quando o baralho é novo.
+- Luz de mesa na cor do time da vez (`.room.turn-blue/.turn-red`), painel do time da vez "respirando", contador que pula ao mudar, `.actionbar.is-live` brilhando, tremida na tela quando sai o Churn.
+- `lib/sound.ts` sintetiza tudo no Web Audio (sem arquivo de áudio): voto, dica, troca de vez, acerto, lead frio, carta do adversário, Churn, vitória e as cartas caindo na mesa. O navegador só libera som depois de um gesto — `unlockAudio()` roda no primeiro clique/tecla. Botão "Som on/off" na barra de cima, salvo em `lead-secreto:mute`.
+- Tudo respeita `prefers-reduced-motion` pela regra global no fim do `globals.css`.
+
 ## Regras implementadas
 - 25 cartas: 9 do time que começa (sorteado), 8 do outro, 7 neutras ("Lead frio"), 1 assassina ("Churn").
 - Dica: uma palavra (hífen permitido), não pode ser igual (sem acento/caixa) a carta não revelada. Número 0–9 ou ∞.
@@ -64,7 +72,6 @@ O usuário vai colocar transcrições de reuniões de descontração (brindes, h
 
 ## Ideias futuras (só se o usuário pedir)
 - Timer por vez (configurável no lobby)
-- Sons de revelar/vitória
 - Modo com 3+ times ou modo cooperativo de 2 jogadores
 - Placar acumulado da sala entre partidas
 

@@ -20,7 +20,7 @@ export default function StatusLine({ room }: { room: RoomView }) {
             : "O espião-mestre está pensando na dica.";
     return (
       <div className="status" aria-live="polite">
-        <p className="status-main">
+        <p className="status-main" key={game.turn}>
           Vez de <span className={`t-${game.turn}`}>{turnName}</span>
         </p>
         <p className="status-hint">{hint}</p>
@@ -40,7 +40,7 @@ export default function StatusLine({ room }: { room: RoomView }) {
 
   return (
     <div className="status" aria-live="polite">
-      <p className="status-main">
+      <p className="status-main" key={game.turn}>
         Vez de <span className={`t-${game.turn}`}>{turnName}</span>
       </p>
       <span className="status-clue" key={`${clue.word}-${clue.count}`}>

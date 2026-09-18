@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { Crown, KeyRound, Plus, UserRound, Users } from "lucide-react";
 import type { Role, RoomView, Team } from "@/lib/types";
 import Figure from "./Figure";
@@ -15,6 +18,8 @@ export default function TeamPanel({
   const remaining = game ? total - revealed : null;
   const isTurn = !!game && game.phase !== "over" && game.turn === team;
   const activeRole: Role | null = isTurn ? (game!.phase === "clue" ? "spymaster" : "agent") : null;
+  const counted = remaining ?? members.length;
+  const bump = useBump(counted);
 
   const roleBlock = (role: Role, label: string) => {
     const people = members.filter((p) => p.role === role);
@@ -63,12 +68,12 @@ export default function TeamPanel({
           {isTurn && <span className="stamp-type team-turn">Na vez</span>}
         </div>
         {remaining !== null ? (
-          <div className="team-count">
+          <div className={`team-count ${bump ? "bump" : ""}`}>
             <strong>{remaining}</strong>
             <span>{remaining === 1 ? "agente" : "agentes"}<br />{remaining === 1 ? "restante" : "restantes"}</span>
           </div>
         ) : (
-          <div className="team-count">
+          <div className={`team-count ${bump ? "bump" : ""}`}>
             <strong>{members.length}</strong>
             <span>{members.length === 1 ? "jogador" : "jogadores"}<br />no time</span>
           </div>
@@ -78,4 +83,20 @@ export default function TeamPanel({
       {roleBlock("agent", "Agentes")}
     </section>
   );
+}
+
+/** Liga uma classe por meio segundo quando o número muda, para o contador "pular" na tela. */
+function useBump(value: number) {
+  const [bump, setBump] = useState(false);
+  const prev = useRef(value);
+
+  useEffect(() => {
+    if (prev.current === value) return;
+    prev.current = value;
+    setBump(true);
+    const t = setTimeout(() => setBump(false), 600);
+    return () => clearTimeout(t);
+  }, [value]);
+
+  return bump;
 }

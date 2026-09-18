@@ -8,7 +8,7 @@ export default function GameLog({ room }: { room: RoomView }) {
       <h3><ScrollText aria-hidden /> Registro</h3>
       <ol>
         {[...room.log].reverse().map((entry, i) => (
-          <li key={`${entry.at}-${i}`} className={`k-${entry.kind} ${entry.team ? `l-${entry.team}` : ""}`}>
+          <li key={`${entry.at}-${room.log.length - 1 - i}`} className={`k-${entry.kind} ${entry.team ? `l-${entry.team}` : ""}`}>
             {entry.text}
           </li>
         ))}

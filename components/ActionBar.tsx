@@ -24,7 +24,7 @@ export default function ActionBar({ room, act }: { room: RoomView; act: (a: Acti
       if (ok) setWord("");
     };
     return (
-      <div className={`actionbar team-${game.turn}`}>
+      <div className={`actionbar is-live team-${game.turn}`}>
         <input
           className="input"
           value={word}
@@ -50,7 +50,7 @@ export default function ActionBar({ room, act }: { room: RoomView; act: (a: Acti
 
   if (game.phase === "guess" && yourTurn && you.role === "agent") {
     return (
-      <div className="actionbar">
+      <div className={`actionbar is-live team-${game.turn}`}>
         <p className="actionbar-note">
           <Hand aria-hidden />
           {game.guessesMade === 0 ? "Revele pelo menos uma carta antes de passar a vez." : "Acertou! Pode continuar ou passar a vez."}
