@@ -79,7 +79,10 @@ export function useRoomEvents(room: RoomView | null) {
       const color = game.cards[i].color;
       if (color) {
         setFlash({ id: ++seq.current, color });
-        play(color === "assassin" ? "assassin" : color === "neutral" ? "neutral" : color === before.turn ? "own" : "enemy");
+        // Quem ouve importa: carta do seu time é boa notícia mesmo quando quem revelou foi o outro time.
+        // Espectador ouve pela ótica de quem estava jogando.
+        const side = room.you?.team ?? before.turn;
+        play(color === "assassin" ? "assassin" : color === "neutral" ? "neutral" : color === side ? "own" : "enemy");
       }
     } else if (snap.marks > before.marks) {
       play("vote");
@@ -95,7 +98,9 @@ export function useRoomEvents(room: RoomView | null) {
         sub: byAssassin ? `O ${ASSASSIN_LABEL} apareceu` : "Todos os agentes encontrados",
         title: `${names[snap.winner]} venceu`,
       });
-      setTimeout(() => play("win"), byAssassin ? 900 : 260);
+      // espectador comemora junto; quem perdeu leva o trombone
+      const youLost = !!room.you?.team && room.you.team !== snap.winner;
+      setTimeout(() => play(youLost ? "lose" : "win"), byAssassin ? 900 : 260);
       return;
     }
     if (snap.clue && snap.clue !== before.clue && game.clue) {

@@ -45,7 +45,8 @@ components/                       RoomScreen, Board, TeamPanel, ActionBar, Lobby
 - `components/Announcer.tsx` desenha a faixa central (vez, dica, partida nova, vitória) e o clarão colorido da carta revelada. É `pointer-events: none`: nunca rouba clique.
 - `components/Board.tsx` marca por ~1s as cartas que acabaram de ser reveladas (estouro de luz) ou votadas (anel dourado), e distribui as 25 cartas com atraso escalonado (`--i`) quando o baralho é novo.
 - Luz de mesa na cor do time da vez (`.room.turn-blue/.turn-red`), painel do time da vez "respirando", contador que pula ao mudar, `.actionbar.is-live` brilhando, tremida na tela quando sai o Churn.
-- `lib/sound.ts` sintetiza tudo no Web Audio (sem arquivo de áudio): voto, dica, troca de vez, acerto, lead frio, carta do adversário, Churn, vitória e as cartas caindo na mesa. O navegador só libera som depois de um gesto — `unlockAudio()` roda no primeiro clique/tecla. Botão "Som on/off" na barra de cima, salvo em `lead-secreto:mute`.
+- `lib/sound.ts` sintetiza tudo no Web Audio (sem arquivo de áudio): voto, dica, troca de vez, acerto, lead frio, carta do adversário, Churn, palmas na vitória, trombone de derrota ("quan quan quan quaaan") e o baralho sendo embaralhado e distribuído (atrito de papel + tapinha na mesa + panorâmica pelos lados).
+- O som de revelar é escolhido pela ótica de quem ouve: carta do seu time é boa notícia mesmo quando quem revelou foi o outro time. Espectador ouve pela ótica de quem estava jogando. O navegador só libera som depois de um gesto — `unlockAudio()` roda no primeiro clique/tecla. Botão "Som on/off" na barra de cima, salvo em `lead-secreto:mute`.
 - Tudo respeita `prefers-reduced-motion` pela regra global no fim do `globals.css`.
 
 ## Regras implementadas

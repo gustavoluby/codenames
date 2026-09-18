@@ -15,6 +15,7 @@ export type Sfx =
   | "enemy"
   | "assassin"
   | "win"
+  | "lose"
   | "join"
   | "deal";
 
@@ -81,25 +82,149 @@ function note(freq: number, { type = "sine", at = 0, dur = 0.16, gain = 0.5, to 
   osc.stop(t0 + dur + 0.05);
 }
 
-/** Ruído filtrado: serve de "whoosh" (troca de vez) e de impacto seco (assassina). */
-function noise({ at = 0, dur = 0.4, gain = 0.25, freq = 900, type = "lowpass" as BiquadFilterType }) {
+/** Ruído branco de 1s reaproveitado por todo mundo: cada som pega um pedaço aleatório dele. */
+let noiseBuffer: AudioBuffer | null = null;
+function whiteNoise(ac: AudioContext) {
+  if (!noiseBuffer || noiseBuffer.sampleRate !== ac.sampleRate) {
+    const frames = Math.floor(ac.sampleRate);
+    noiseBuffer = ac.createBuffer(1, frames, ac.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < frames; i++) data[i] = Math.random() * 2 - 1;
+  }
+  return noiseBuffer;
+}
+
+type NoiseOpts = {
+  at?: number;
+  dur?: number;
+  gain?: number;
+  freq?: number;
+  /** varredura do filtro até esta frequência: é o que dá o "fffp" do papel */
+  to?: number;
+  type?: BiquadFilterType;
+  q?: number;
+  /** ataque em segundos; curto = estalo, longo = sopro */
+  attack?: number;
+  /** -1 (esquerda) a 1 (direita) */
+  pan?: number;
+};
+
+/** Ruído filtrado: whoosh, atrito de papel e impacto seco. */
+function noise({ at = 0, dur = 0.4, gain = 0.25, freq = 900, to, type = "lowpass", q = 0.7, attack = 0.004, pan = 0 }: NoiseOpts) {
   const ac = audio();
   if (!ac || !master) return;
   const t0 = ac.currentTime + at;
-  const frames = Math.floor(ac.sampleRate * dur);
-  const buffer = ac.createBuffer(1, frames, ac.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < frames; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / frames);
   const src = ac.createBufferSource();
-  src.buffer = buffer;
+  src.buffer = whiteNoise(ac);
+  src.loop = true;
   const filter = ac.createBiquadFilter();
   filter.type = type;
+  filter.Q.value = q;
   filter.frequency.setValueAtTime(freq, t0);
+  if (to) filter.frequency.exponentialRampToValueAtTime(Math.max(60, to), t0 + dur);
   const env = ac.createGain();
-  env.gain.setValueAtTime(gain, t0);
+  env.gain.setValueAtTime(0.0001, t0);
+  env.gain.exponentialRampToValueAtTime(gain, t0 + Math.min(attack, dur / 2));
   env.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-  src.connect(filter).connect(env).connect(master);
-  src.start(t0);
+  const out = panner(ac, pan);
+  src.connect(filter).connect(env).connect(out);
+  src.start(t0, Math.random() * 0.8);
+  src.stop(t0 + dur + 0.02);
+}
+
+/** Corpo grave e curto: a carta batendo no feltro da mesa. */
+function thump(freq: number, { at = 0, dur = 0.09, gain = 0.2, pan = 0 }) {
+  const ac = audio();
+  if (!ac || !master) return;
+  const t0 = ac.currentTime + at;
+  const osc = ac.createOscillator();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(freq, t0);
+  osc.frequency.exponentialRampToValueAtTime(freq * 0.55, t0 + dur);
+  const env = ac.createGain();
+  env.gain.setValueAtTime(0.0001, t0);
+  env.gain.exponentialRampToValueAtTime(gain, t0 + 0.003);
+  env.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(env).connect(panner(ac, pan));
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.02);
+}
+
+/** Espalha o som pela mesa; se o navegador não tiver panner, cai no master mesmo. */
+function panner(ac: AudioContext, pan: number): AudioNode {
+  if (!master) throw new Error("sem master");
+  if (!pan || !ac.createStereoPanner) return master;
+  const node = ac.createStereoPanner();
+  node.pan.value = Math.max(-1, Math.min(1, pan));
+  node.connect(master);
+  return node;
+}
+
+/**
+ * Uma carta: o atrito do papel saindo do baralho (agudo, varrendo para baixo)
+ * e o tapinha dela caindo na mesa logo em seguida.
+ */
+function card({ at = 0, gain = 1, pan = 0 }) {
+  const bright = 3200 + Math.random() * 1800;
+  noise({ at, dur: 0.05 + Math.random() * 0.02, gain: 0.2 * gain, freq: bright, to: bright * 0.35, type: "bandpass", q: 1.1, attack: 0.002, pan });
+  const land = at + 0.022 + Math.random() * 0.012;
+  noise({ at: land, dur: 0.045, gain: 0.14 * gain, freq: 900 + Math.random() * 400, to: 260, type: "lowpass", attack: 0.001, pan });
+  thump(150 + Math.random() * 45, { at: land, dur: 0.075, gain: 0.16 * gain, pan });
+}
+
+/** Sopro de trombone com glissando: a base do "quan quan quan quaaan" da derrota. */
+function brass(freq: number, { at = 0, dur = 0.34, gain = 0.28, from, to, vibrato = 0, pan = 0 }: { at?: number; dur?: number; gain?: number; from?: number; to?: number; vibrato?: number; pan?: number }) {
+  const ac = audio();
+  if (!ac || !master) return;
+  const t0 = ac.currentTime + at;
+  const osc = ac.createOscillator();
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(from ?? freq * 1.08, t0);
+  osc.frequency.exponentialRampToValueAtTime(freq, t0 + Math.min(0.14, dur * 0.45));
+  if (to) osc.frequency.exponentialRampToValueAtTime(to, t0 + dur);
+  if (vibrato) {
+    const lfo = ac.createOscillator();
+    const depth = ac.createGain();
+    lfo.frequency.value = 5.4;
+    depth.gain.value = vibrato;
+    lfo.connect(depth).connect(osc.frequency);
+    lfo.start(t0);
+    lfo.stop(t0 + dur + 0.05);
+  }
+  // filtro fechando = surdina do trombone
+  const filter = ac.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.Q.value = 5;
+  filter.frequency.setValueAtTime(freq * 5, t0);
+  filter.frequency.exponentialRampToValueAtTime(Math.max(300, freq * 1.7), t0 + dur);
+  const env = ac.createGain();
+  env.gain.setValueAtTime(0.0001, t0);
+  env.gain.exponentialRampToValueAtTime(gain, t0 + 0.05);
+  env.gain.setValueAtTime(gain, t0 + dur * 0.62);
+  env.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(filter).connect(env).connect(panner(ac, pan));
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.05);
+}
+
+/** Plateia batendo palma: um monte de estalos curtos espalhados, com o barulho da sala por baixo. */
+function applause({ at = 0, dur = 2 }) {
+  for (let i = 0; i < 64; i++) {
+    // mais denso no começo, como palma de verdade: todo mundo entra junto e vai soltando
+    const when = at + Math.pow(Math.random(), 1.6) * dur;
+    noise({
+      at: when,
+      dur: 0.02 + Math.random() * 0.025,
+      gain: 0.04 + Math.random() * 0.055,
+      freq: 1100 + Math.random() * 2400,
+      to: 600,
+      type: "bandpass",
+      q: 1.5,
+      attack: 0.001,
+      pan: (Math.random() * 2 - 1) * 0.85,
+    });
+  }
+  noise({ at, dur: dur * 0.9, gain: 0.07, freq: 1900, to: 800, type: "bandpass", q: 0.8, attack: 0.3 });
 }
 
 export function play(sfx: Sfx) {
@@ -138,24 +263,39 @@ export function play(sfx: Sfx) {
       note(110, { type: "sawtooth", dur: 0.9, gain: 0.34, to: 48 });
       note(73, { type: "square", at: 0.05, dur: 1.1, gain: 0.2, to: 40 });
       break;
-    case "win": // fanfarra curta
-      note(523, { type: "triangle", dur: 0.16, gain: 0.36 });
-      note(659, { type: "triangle", at: 0.12, dur: 0.16, gain: 0.36 });
-      note(784, { type: "triangle", at: 0.24, dur: 0.18, gain: 0.36 });
-      note(1047, { type: "sine", at: 0.36, dur: 0.6, gain: 0.4 });
+    case "win": // fanfarra curta e a sala aplaudindo
+      note(523, { type: "triangle", dur: 0.16, gain: 0.34 });
+      note(659, { type: "triangle", at: 0.12, dur: 0.16, gain: 0.34 });
+      note(784, { type: "triangle", at: 0.24, dur: 0.18, gain: 0.34 });
+      note(1047, { type: "sine", at: 0.36, dur: 0.6, gain: 0.38 });
+      applause({ at: 0.3, dur: 2.2 });
+      break;
+    case "lose": // trombone de derrota: quan, quan, quan, quaaannn
+      brass(349, { at: 0, dur: 0.32, from: 392 });
+      brass(330, { at: 0.34, dur: 0.32, from: 349 });
+      brass(311, { at: 0.68, dur: 0.32, from: 330 });
+      brass(294, { at: 1.02, dur: 1.25, from: 311, to: 208, gain: 0.3, vibrato: 7 });
       break;
     case "join":
       note(587, { type: "sine", dur: 0.1, gain: 0.26, to: 784 });
       break;
     case "deal": {
-      // 25 cartas caindo na mesa: um "flap" de papel atrás do outro, acelerando
-      for (let i = 0; i < 12; i++) {
-        const at = i * 0.045 + Math.random() * 0.012;
-        noise({ at, dur: 0.1, gain: 0.16 + Math.random() * 0.07, freq: 1400 + Math.random() * 1600, type: "bandpass" });
+      // Embaralha e distribui: riffle curto e depois as cartas caindo espalhadas pela mesa.
+      for (let i = 0; i < 20; i++) {
+        const at = 0.012 * i + Math.random() * 0.006;
+        noise({ at, dur: 0.018, gain: 0.07 + Math.random() * 0.05, freq: 2600 + i * 120, to: 1400, type: "bandpass", q: 2.2, attack: 0.001, pan: (Math.random() - 0.5) * 0.5 });
       }
-      note(330, { type: "triangle", at: 0.55, dur: 0.14, gain: 0.26 });
-      note(494, { type: "triangle", at: 0.66, dur: 0.16, gain: 0.26 });
-      note(659, { type: "sine", at: 0.78, dur: 0.5, gain: 0.3 });
+      noise({ at: 0.26, dur: 0.1, gain: 0.12, freq: 1200, to: 300, type: "lowpass" });
+      thump(120, { at: 0.27, dur: 0.12, gain: 0.16 });
+      // 13 cartas, ritmo humano (acelera e alivia no fim), alternando os lados da mesa
+      let at = 0.4;
+      for (let i = 0; i < 13; i++) {
+        card({ at, gain: 0.85 + Math.random() * 0.3, pan: (i % 2 ? 0.5 : -0.5) * (0.5 + Math.random() * 0.5) });
+        at += 0.075 - Math.min(i, 8) * 0.004 + Math.random() * 0.022;
+      }
+      note(330, { type: "triangle", at: at + 0.06, dur: 0.14, gain: 0.2 });
+      note(494, { type: "triangle", at: at + 0.17, dur: 0.16, gain: 0.2 });
+      note(659, { type: "sine", at: at + 0.29, dur: 0.5, gain: 0.24 });
       break;
     }
   }
