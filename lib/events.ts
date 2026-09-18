@@ -32,6 +32,8 @@ interface Snapshot {
   revealed: boolean[];
   marks: number;
   players: number;
+  /** quem já tem time e função: id -> "time:função" */
+  enlisted: Record<string, string>;
 }
 
 /**
@@ -56,6 +58,7 @@ export function useRoomEvents(room: RoomView | null) {
       revealed: game ? game.cards.map((c) => c.revealed) : [],
       marks: game ? game.cards.reduce((n, c) => n + c.marks.length, 0) : 0,
       players: room.players.length,
+      enlisted: Object.fromEntries(room.players.filter((p) => p.team).map((p) => [p.id, `${p.team}:${p.role}`])),
     };
     const before = prev.current;
     prev.current = snap;
@@ -65,6 +68,10 @@ export function useRoomEvents(room: RoomView | null) {
     const announce = (b: Omit<Banner, "id">) => setBanner({ id: ++seq.current, ...b });
 
     if (snap.players > before.players) play("join");
+
+    // Entrou num time (inclusive pelo sorteio, que enche vários de uma vez): carimbo no dossiê.
+    const fresh = Object.keys(snap.enlisted).filter((id) => !before.enlisted[id]);
+    if (fresh.length > 0) play(fresh.includes(room.you?.id ?? "") ? "enlist" : "enlistOther");
 
     if (snap.deck && snap.deck !== before.deck) {
       announce({ kind: "start", sub: "Dossiê aberto", title: "A missão começou" });

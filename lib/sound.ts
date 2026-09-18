@@ -17,6 +17,8 @@ export type Sfx =
   | "win"
   | "lose"
   | "join"
+  | "enlist"
+  | "enlistOther"
   | "deal";
 
 const MUTE_KEY = "lead-secreto:mute";
@@ -278,6 +280,18 @@ export function play(sfx: Sfx) {
       break;
     case "join":
       note(587, { type: "sine", dur: 0.1, gain: 0.26, to: 784 });
+      break;
+    case "enlist": // seu nome entrando no dossiê: carimbo na mesa e a insígnia confirmando
+      noise({ dur: 0.05, gain: 0.26, freq: 2200, to: 500, type: "lowpass", attack: 0.001 });
+      thump(95, { dur: 0.13, gain: 0.3 });
+      note(523, { type: "triangle", at: 0.1, dur: 0.12, gain: 0.3 });
+      note(784, { type: "triangle", at: 0.19, dur: 0.16, gain: 0.32 });
+      note(1568, { type: "sine", at: 0.28, dur: 0.5, gain: 0.16 });
+      break;
+    case "enlistOther": // alguém do time entrou: só o carimbo, discreto
+      noise({ dur: 0.045, gain: 0.14, freq: 1800, to: 450, type: "lowpass", attack: 0.001 });
+      thump(105, { dur: 0.1, gain: 0.16 });
+      note(659, { type: "triangle", at: 0.09, dur: 0.12, gain: 0.12 });
       break;
     case "deal": {
       // Embaralha e distribui: riffle curto e depois as cartas caindo espalhadas pela mesa.
