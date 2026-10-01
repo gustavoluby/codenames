@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Crown, KeyRound, Plus, UserRound, Users } from "lucide-react";
+import { ArrowLeftRight, Crown, KeyRound, Plus, UserRound, Users } from "lucide-react";
 import type { Role, RoomView, Team } from "@/lib/types";
 import Figure from "./Figure";
 
@@ -18,6 +18,9 @@ export default function TeamPanel({
   const remaining = game ? total - revealed : null;
   const isTurn = !!game && game.phase !== "over" && game.turn === team;
   const activeRole: Role | null = isTurn ? (game!.phase === "clue" ? "spymaster" : "agent") : null;
+  // Antes da rodada começar dá para trocar de time e de função à vontade; com partida rolando, não.
+  const youPlaying = !!game && game.phase !== "over";
+  const canChoose = !!room.you && (!room.you.team || !youPlaying);
   const counted = remaining ?? members.length;
   const bump = useBump(counted);
 
@@ -50,9 +53,13 @@ export default function TeamPanel({
             ))}
           </ul>
         )}
-        {room.you && !room.you.team && (
+        {canChoose && !(room.you!.team === team && room.you!.role === role) && (
           <button className="btn-join" onClick={() => onJoin(role)}>
-            <Plus aria-hidden strokeWidth={2.5} /> Entrar como {role === "spymaster" ? "espião-mestre" : "agente"}
+            {room.you!.team ? (
+              <><ArrowLeftRight aria-hidden strokeWidth={2.5} /> Trocar para {role === "spymaster" ? "espião-mestre" : "agente"}</>
+            ) : (
+              <><Plus aria-hidden strokeWidth={2.5} /> Entrar como {role === "spymaster" ? "espião-mestre" : "agente"}</>
+            )}
           </button>
         )}
       </div>

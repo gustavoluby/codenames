@@ -173,9 +173,10 @@ export function applyAction(room: Room, playerId: string, action: Action, ctx: A
 
     case "setRole": {
       const p = requirePlayer(room, playerId);
-      if (p.team) {
+      // Trocar de time é livre enquanto a rodada não começa; com partida em andamento, cada um fica onde está.
+      if (p.team && room.game && room.game.phase !== "over") {
         const role = p.role === "spymaster" ? "espião-mestre" : "agente";
-        throw new GameError(`Você já está em ${names[p.team]} como ${role}. Depois de escolher, não dá para trocar.`);
+        throw new GameError(`A partida já começou: você fica em ${names[p.team]} como ${role} até ela acabar.`);
       }
       if ((action.team !== "blue" && action.team !== "red") || (action.role !== "spymaster" && action.role !== "agent")) {
         throw new GameError("Escolha time e função.");

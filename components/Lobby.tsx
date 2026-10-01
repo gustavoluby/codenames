@@ -47,7 +47,7 @@ export default function Lobby({ room, act, isHost }: { room: RoomView; act: (a: 
             ? "Mande o link da sala para o time. Cada pessoa escolhe um lado nos painéis e você começa quando todos estiverem posicionados."
             : "Escolha seu time e função nos painéis laterais. O admin da sala começa a partida."}
         </p>
-        <p className="lock-note"><Lock aria-hidden /> Depois de entrar num time, não dá para trocar.</p>
+        <p className="lock-note"><Lock aria-hidden /> Troque de time à vontade agora: quando a partida começar, cada um fica onde está.</p>
       </div>
 
       <div>

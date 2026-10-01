@@ -119,15 +119,34 @@ describe("regras", () => {
   });
 });
 
-describe("times travados", () => {
-  it("quem entrou num time não troca de time, de função nem vira espectador", () => {
+describe("times", () => {
+  it("antes da partida começar dá para trocar de time e de função", () => {
+    const room = createRoom("TESTE", { id: "host-0001", name: "Luby" }, 0);
+    applyAction(room, "bluesm-01", { type: "join", name: "Fê" }, ctx());
+    applyAction(room, "bluesm-01", { type: "setRole", team: "blue", role: "spymaster" }, ctx());
+    applyAction(room, "bluesm-01", { type: "setRole", team: "blue", role: "agent" }, ctx());
+    expect(room.players.find((p) => p.id === "bluesm-01")).toMatchObject({ team: "blue", role: "agent" });
+    applyAction(room, "bluesm-01", { type: "setRole", team: "red", role: "spymaster" }, ctx());
+    expect(room.players.find((p) => p.id === "bluesm-01")).toMatchObject({ team: "red", role: "spymaster" });
+    // a trava que sobrevive a sair e voltar acompanha a última escolha
+    expect(room.assignments?.["bluesm-01"]).toEqual({ team: "red", role: "spymaster" });
+  });
+
+  it("com partida em andamento ninguém troca de time, de função nem vira espectador", () => {
     const room = setup();
-    expect(() => applyAction(room, "bluesm-01", { type: "setRole", team: "blue", role: "agent" }, ctx())).toThrow(/não dá para trocar/);
-    expect(() => applyAction(room, "bluesm-01", { type: "setRole", team: "red", role: "spymaster" }, ctx())).toThrow(/não dá para trocar/);
+    expect(() => applyAction(room, "bluesm-01", { type: "setRole", team: "blue", role: "agent" }, ctx())).toThrow(/já começou/);
+    expect(() => applyAction(room, "bluesm-01", { type: "setRole", team: "red", role: "spymaster" }, ctx())).toThrow(/já começou/);
     expect(() =>
       applyAction(room, "bluesm-01", { type: "setRole", team: null, role: null } as never, ctx()),
-    ).toThrow(/não dá para trocar/);
+    ).toThrow(/já começou/);
     expect(room.players.find((p) => p.id === "bluesm-01")).toMatchObject({ team: "blue", role: "spymaster" });
+  });
+
+  it("depois que a partida acaba a troca libera de novo", () => {
+    const room = setup();
+    applyAction(room, "host-0001", { type: "backToLobby" }, ctx());
+    applyAction(room, "bluesm-01", { type: "setRole", team: "red", role: "agent" }, ctx());
+    expect(room.players.find((p) => p.id === "bluesm-01")).toMatchObject({ team: "red", role: "agent" });
   });
 
   it("sair e voltar para a sala mantém o time e a função", () => {

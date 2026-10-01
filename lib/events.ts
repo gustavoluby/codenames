@@ -69,8 +69,8 @@ export function useRoomEvents(room: RoomView | null) {
 
     if (snap.players > before.players) play("join");
 
-    // Entrou num time (inclusive pelo sorteio, que enche vários de uma vez): carimbo no dossiê.
-    const fresh = Object.keys(snap.enlisted).filter((id) => !before.enlisted[id]);
+    // Entrou num time ou trocou de time/função (inclusive pelo sorteio, que enche vários de uma vez): carimbo no dossiê.
+    const fresh = Object.keys(snap.enlisted).filter((id) => before.enlisted[id] !== snap.enlisted[id]);
     if (fresh.length > 0) play(fresh.includes(room.you?.id ?? "") ? "enlist" : "enlistOther");
 
     if (snap.deck && snap.deck !== before.deck) {

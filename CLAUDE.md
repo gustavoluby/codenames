@@ -55,7 +55,7 @@ components/                       RoomScreen, Board, TeamPanel, ActionBar, Lobby
 - Palpites: até número+1; 0 ou ∞ = ilimitado. Mínimo de 1 palpite antes de encerrar a vez.
 - Marcar carta = votar (toggle, mostra os nomes de quem votou) ≠ revelar. Revelar é o ✓ pequeno no canto superior direito, que só aparece no hover (no celular, só nas cartas que você votou), para ninguém revelar sem querer. Marcações são limpas a cada troca de vez.
 - Própria cor: continua. Neutra/adversária: passa a vez. Assassina: perde na hora. Revelar a última carta de qualquer time dá vitória a esse time.
-- **Time e função travados:** depois de escolher, o jogador não troca de time, de função nem vira espectador. A escolha fica em `room.assignments` (não vai para o navegador) e volta se a pessoa sair e entrar de novo. Não existe "Limpar times"; o sorteio só distribui quem está sem time.
+- **Troca livre antes da rodada, travado durante:** no lobby (e na tela de fim de partida) o jogador troca de time e de função à vontade, clicando no botão do painel do outro time. Com partida em andamento ninguém troca nem vira espectador — quem está sem time ainda pode entrar num, para quem chegou no meio conseguir jogar. A escolha fica em `room.assignments` (não vai para o navegador) e volta se a pessoa sair e entrar de novo. Não existe "Limpar times"; o sorteio só distribui quem está sem time.
 - Admin: cria a sala, configura pacotes/nomes/palavras extras, sorteia quem está sem time, começa/encerra. Se ficar offline >45s, outro jogador pode assumir.
 
 ## Convenções
